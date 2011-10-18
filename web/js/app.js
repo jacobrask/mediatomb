@@ -920,78 +920,65 @@ function handleLogout(ajaxRequest)
     window.location = '/';
 }
 
-function getConfig()
-{
+function getConfig() {
     var url = link('auth', {action: 'get_config'});
-    var myAjax = new Ajax.Request(
-        url,
-        {
-            method: 'get',
-            asynchronous: false,
-            onComplete: getConfigCallback
-        });
-}
-
-function getConfigCallback(ajaxRequest)
-{
-    var xml = ajaxRequest.responseXML;
-    errorCheck(xml, true);
-    var rootEl = xmlGetElement(xml, "root");
-    var configEl = xmlGetElement(rootEl, "config");
-    if (configEl)
-    {
-        accountsStr = xmlGetAttribute(configEl, "accounts");
-        ACCOUNTS = (accountsStr && accountsStr == "1");
-        pollIntervalTime = xmlGetAttribute(configEl, "poll-interval") * 1000;
-        pollWhenIdle = (xmlGetAttribute(configEl, "poll-when-idle") == 1);
-        showTooltips = (xmlGetAttribute(configEl, "show-tooltips") == 1);
-        if (pollWhenIdle)
-            startPollInterval();
-        var itemsPerPageOptionsEl = xmlGetElement(configEl, "items-per-page");
-        if (itemsPerPageOptionsEl)
-        {
-            var newDefaultViewItems = xmlGetAttribute(itemsPerPageOptionsEl, "default");
-            var options = itemsPerPageOptionsEl.getElementsByTagName("option");
-            var newItemOptions = new Array();
-            var newViewItemsMin = -1;
-            var defaultViewItemsFound = false;
-            var currentViewItemsFound = false;
-            for (var i = 0; i < options.length; i++)
-            {
-                var itemOption = options[i].firstChild.nodeValue;
-                newItemOptions[i] = itemOption;
-                if (itemOption == newDefaultViewItems)
-                    defaultViewItemsFound = true;
-                if (viewItems != -1 && itemOption == viewItems)
-                    currentViewItemsFound = true;
-                if (newViewItemsMin == -1 || itemOption < newViewItemsMin)
-                    newViewItemsMin = itemOption;
+    jQuery.ajax({
+        url: url,
+        async: false,
+        success: callback
+    });
+    function callback(xml) {
+        errorCheck(xml, true);
+        var $configEl = jQuery(xml).find('config');
+        if ($configEl) {
+            accountsStr = $configEl.attr('accounts');
+            ACCOUNTS = (accountsStr && accountsStr == '1');
+            pollIntervalTime = $configEl.attr('poll-interval') * 1000;
+            pollWhenIdle = ($configEl.attr('poll-when-idle') == 1);
+            showTooltips = ($configEl.attr('show-tooltips') == 1);
+            if (pollWhenIdle) {
+                startPollInterval();
             }
-            if (defaultViewItemsFound)
-            {
-                itemOptions = newItemOptions;
-                viewItemsMin = newViewItemsMin;
-                if (! currentViewItemsFound)
-                    viewItems = newDefaultViewItems;
+            var $itemsPerPageOptionsEl = jQuery($configEl).find('items-per-page');
+            if ($itemsPerPageOptionsEl) {
+                var newDefaultViewItems = $itemsPerPageOptionsEl.attr('default');
+                var options = $itemsPerPageOptionsEl.find('option');
+                var newItemOptions = [];
+                var newViewItemsMin = -1;
+                var defaultViewItemsFound = false;
+                var currentViewItemsFound = false;
+                for (var i = 0; i < options.length; i++) {
+                    var itemOption = options[i].firstChild.nodeValue;
+                    newItemOptions[i] = itemOption;
+                    if (itemOption == newDefaultViewItems) {
+                        defaultViewItemsFound = true;
+                    }
+                    if (viewItems != -1 && itemOption == viewItems) {
+                        currentViewItemsFound = true;
+                    }
+                    if (newViewItemsMin == -1 || itemOption < newViewItemsMin) {
+                        newViewItemsMin = itemOption;
+                    }
+                }
+                if (defaultViewItemsFound) {
+                    itemOptions = newItemOptions;
+                    viewItemsMin = newViewItemsMin;
+                    if (! currentViewItemsFound) {
+                        viewItems = newDefaultViewItems;
+                    }
+                }
             }
-        }
-        var haveInotify = (xmlGetAttribute(configEl, "have-inotify") == "1");
-        if (haveInotify)
-        {
-            Element.show(frames["rightF"].document.getElementById("scan_mode_inotify"));
-            Element.show(frames["rightF"].document.getElementById("scan_mode_inotify_label"));
-        }
-        var actionsEl = xmlGetElement(configEl, "actions");
-        if (actionsEl)
-        {
-            var actions = actionsEl.getElementsByTagName("action");
-            for (var i = 0; i < actions.length; i++)
-            {
-                var action = actions[i].firstChild.nodeValue;
-                var actionEl = frames["topF"].document.getElementById("action_"+action);
-                if (actionEl)
-                {
-                    Element.show(actionEl);
+            var haveInotify = ($configEl.attr('have-inotify') == '1');
+            if (haveInotify) {
+                jQuery('#scan_mode_inotify', frames['rightF'].document).show()
+                jQuery('#scan_mode_inotify_label', frames['rightF'].document).show()
+            }
+            var $actionsEl = $configEl.find('actions');
+            if ($actionsEl) {
+                var actions = $actionsEl.find('action');
+                for (var i = 0; i < actions.length; i++) {
+                    var action = actions[i].firstChild.nodeValue;
+                    jQuery('action_' + action, frames['topF'].document).show();
                 }
             }
         }
