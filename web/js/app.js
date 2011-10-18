@@ -111,21 +111,17 @@ function appendImgNode(document, node, alt, icon)
 
 var timer;
 
-function errorCheck(xml, noredirect)
-{
-    if (!xml)
-    {
+function errorCheck(xml, noredirect) {
+    if (!xml) {
         return false;
     }
-    var rootEl = xmlGetElement(xml, 'root');
-    
-    var errorEl = xmlGetElement(xml, 'error');
+    var $rootEl = jQuery(xml).find('root');
+    var $errorEl = jQuery(xml).find('error');
     var error = false;
     var redirect = false;
     var uiDisabled = false;
-    if (errorEl)
-    {
-        var code = errorEl.getAttribute('code');
+    if ($errorEl.length > 0) {
+        var code = $errorEl.attr('code');
         var mainCode = Math.floor(code / 100);
         
         // 2xx - object not found
@@ -140,11 +136,10 @@ function errorCheck(xml, noredirect)
         else if (mainCode == 9)
             uiDisabled = true;
         else if (mainCode != 2)
-            error = xmlGetText(errorEl);
+            error = $errorEl.text();
     }
     
-    if (uiDisabled)
-    {
+    if (uiDisabled) {
         window.location = "/disabled.html";
         return false;
     }
@@ -159,58 +154,50 @@ function errorCheck(xml, noredirect)
     }
     
     // clears current task if no task element
-    updateCurrentTask(xmlGetElement(xml, 'task'));
+    updateCurrentTask(jQuery(xml).find('task')[0]);
     
-    var updateIDsEl = xmlGetElement(xml, 'update_ids');
-    if (updateIDsEl)
-        handleUIUpdates(updateIDsEl);
-    
-    if (error)
-    {
+    var $updateIDsEl = jQuery(xml).find('update_ids');
+    if ($updateIDsEl.length > 0) {
+        handleUIUpdates($updateIDsEl);
+    }
+
+    if (error) {
         alert(error);
         return false;
     }
     return true;
 }
 
-function handleUIUpdates(updateIDsEl)
-{
-    if (updateIDsEl.getAttribute("pending") == '1')
-    {
+function handleUIUpdates($updateIDsEl) {
+    if ($updateIDsEl.attr('pending') === '1') {
         setStatus("updates_pending");
         addUpdateTimer();
         last_update = new Date().getTime();
-    }
-    else if (updateIDsEl.getAttribute("updates") != '1')
-    {
+    } else if ($updateIDsEl.attr('updates') !== '1') {
         setStatus("no_updates");
         clearUpdateTimer();
         last_update = new Date().getTime();
-    }
-    else
-    {
-        var updateIDStr = xmlGetText(updateIDsEl);
+    } else {
+        var updateIDStr = $updateIDsEl.text();
         var savedlastNodeDbID = lastNodeDb;
         var savedlastNodeDbIDParent;
-        if (savedlastNodeDbID != 'd0')
+        if (savedlastNodeDbID != 'd0') {
             savedlastNodeDbIDParent = getTreeNode(savedlastNodeDbID).getParent().getID();
+        }
         selectNodeIfVisible('d0');
         var updateAll = false;
-        if (updateIDStr != 'all')
-        {
+        if (updateIDStr != 'all') {
             var updateIDsArr = updateIDStr.split(",");
-            for (var i = 0; i < updateIDsArr.length; i++)
-            {
-                if (updateIDsArr[i] == 0)
+            for (var i = 0; i < updateIDsArr.length; i++) {
+                if (updateIDsArr[i] == 0) {
                     updateAll = true;
+                }
             }
-        }
-        else
+        } else {
             updateAll = true;
-        if (! updateAll)
-        {
-            for (var i = 0; i < updateIDsArr.length; i++)
-            {
+        }
+        if (!updateAll) {
+            for (var i = 0; i < updateIDsArr.length; i++) {
                 var node = getTreeNode('d' + updateIDsArr[i]);
                 if (node)
                 {
@@ -727,59 +714,51 @@ function binl2b64(binarray)
   return str;
 }
 
-function authenticate()
-{
+function authenticate() {
     
     // fetch authentication token
     var url = link('auth', {action: 'get_token'});
-    
-    var myAjax = new Ajax.Request(
-        url,
-        {
-            method: 'get',
-            onComplete: gotToken
-        });
-}
+    jQuery.ajax({
+        url: url,
+        success: callback
+    });
+    function callback(xml) {
+        if (!errorCheck(xml)) {
+            return;
+        }
+        var $rootEl = jQuery(xml).find('root');
+        var token = jQuery(xml).find('token').text();
 
-function gotToken(ajaxRequest)
-{
-    var xml = ajaxRequest.responseXML;
-    if (!errorCheck(xml)) return;
-    
-    var rootEl = xmlGetElement(xml, "root");
-    
-    var token = xmlGetElementText(rootEl, "token");
-    
-    var username = document.login_form.username.value;
-    var password = document.login_form.password.value;
-    
-    // create authentication password
-    password = hex_md5(token + password);
-    // try to login
-    var url = link('auth', {action: 'login', username: username, password: password});
-    var myAjax = new Ajax.Request(
-        url,
-        {
-            method: 'get',
-            onComplete: checkLogin
+        var username = document.login_form.username.value;
+        var password = document.login_form.password.value;
+        
+        // create authentication password
+        password = hex_md5(token + password);
+        // try to login
+        var url = link('auth', {action: 'login', username: username, password: password});
+        jQuery.ajax({
+            url: url,
+            success: function(xml) {
+                if (!errorCheck(xml)) {
+                    return;
+                }
+                jQuery('#loginDiv').hide();
+                jQuery('#leftLoginDiv').hide();
+                jQuery('#statusDiv').show();
+                jQuery('#treeDiv').show();
+                jQuery('#context_switcher').show();
+                if (ACCOUNTS) {
+                    jQuery('#logout_link').show();
+                }
+                loggedIn = true;
+                initLoggedIn();
+                updateTreeAfterLogin();
+            }
         });
+    }
 }
 
 function checkLogin(ajaxRequest) {
-    var xml = ajaxRequest.responseXML;
-    if (!errorCheck(xml)) return;
-    
-    jQuery('#loginDiv').hide();
-    jQuery('#leftLoginDiv').hide();
-    jQuery('#statusDiv').show();
-    jQuery('#treeDiv').show();
-    jQuery('#context_switcher').show();
-    if (ACCOUNTS) {
-        jQuery('#logout_link').show();
-    }
-    loggedIn = true;
-    initLoggedIn();
-    updateTreeAfterLogin();
 }
 
 function checkSID() {
@@ -1800,14 +1779,14 @@ function treeInit()
     
     documentID = "mediatombUI";
     
-    var rootContainer = treeDocument.getElementById('treeDiv');
+    var $rootContainer = jQuery('#treeDiv');
     dbStuff.container = treeDocument.createElement("div");
     fsStuff.container = treeDocument.createElement("div");
     
-    Element.hide(dbStuff.container);
-    Element.hide(fsStuff.container);
-    rootContainer.appendChild(dbStuff.container);
-    rootContainer.appendChild(fsStuff.container);
+    jQuery(dbStuff.container).hide();
+    jQuery(fsStuff.container).hide();
+    $rootContainer.append(dbStuff.container);
+    $rootContainer.append(fsStuff.container);
     
     dbStuff.rootNode = new TreeNode(-1,"Database", iconArray);
     dbStuff.tombRootNode = new TreeNode('d0', "Database", iconArray);
@@ -2614,8 +2593,7 @@ function addedItem(ajaxRequest)
     addUpdateTimer();
 }
 
-function userAddItemStart()
-{
+function userAddItemStart() {
     updateItemAddEditFields();
     Element.hide(itemRoot);
     itemRoot=rightDocument.getElementById('item_add_edit_div');
