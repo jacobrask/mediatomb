@@ -60,41 +60,6 @@ function isTypeDb()
     return (TYPE == "db");
 }
 
-function xmlGetElement(parent, name)
-{
-    var returnVal = parent.getElementsByTagName(name)
-    
-    if (!returnVal || !returnVal.length)
-        return null;
-    else
-        return returnVal[0];
-}
-
-function xmlGetElementText(parent, name)
-{
-    var el = xmlGetElement(parent, name);
-    return xmlGetText(el);
-}
-function xmlGetText(el)
-{
-    if (!el || el.childNodes.length != 1)
-        return "";
-    return el.firstChild.nodeValue;
-}
-
-function xmlGetAttribute(parent, name)
-{
-    var a = parent.attributes;
-    if (! a)
-        return null;
-    for (var i = 0; i < a.length; i++)
-    {
-        if (a[i].name == name)
-            return a[i].value;
-    }
-    return null;
-}
-
 function appendImgNode(document, node, alt, icon)
 {
     var img = document.createElement("img");
@@ -1882,8 +1847,7 @@ function openEventListener(id)
     }
 }
 
-function fetchChildren(node, uiUpdate, selectIt)
-{
+function fetchChildren(node, uiUpdate, selectIt) {
     var id = node.getID();
     var type = id.substring(0, 1);
     id = id.substring(1);
@@ -1891,139 +1855,122 @@ function fetchChildren(node, uiUpdate, selectIt)
     var url = link(linkType, {parent_id: id, select_it: (selectIt ? '1' : '0')});
     var async = ! uiUpdate;
     
-    var myAjax = new Ajax.Request(
-        url,
-        {
-            method: 'get',
-            onComplete: updateTree,
-            asynchronous: async
+    jQuery.ajax({
+        url: url,
+        async: async,
+        success: callback
+    });
+
+    function callback(xml) {
+        if (!errorCheck(xml)) {
+            return;
+        }
+        
+        var $containers = jQuery(xml).find('containers');
+        if (!$containers) {
+            alert("no containers tag found");
+            return;
+        }
+        var type = $containers.attr('type');
+        if (type == 'filesystem') {
+            type = 'f';
+        } else if (type == 'database') {
+            type = 'd';
+        }
+        var ofId = $containers.attr('parent_id');
+        var parentId = type+ofId;
+        
+        var node = getTreeNode(parentId);
+        var success = jQuery(xml).find('root').attr("success");
+        
+        if (success !== "1"){
+            if (ofId === '0') {
+                alert("Oops, your database seems to be corrupt. Please report this problem.");
+                return;
+            }
+            var parNode = node.getParent();
+            parNode.childrenHaveBeenFetched=false;
+            parNode.resetChildren();
+            fetchChildren(parNode, true, true);
+            return;
+        }
+        
+        var selectItStr = $containers.attr('select_it');
+        var selectIt = (selectItStr && selectItStr === '1');
+        
+        if (node.childrenHaveBeenFetched) {
+            return;
+        }
+
+        var $cts = $containers.find('container');
+        if ($cts.length <= 0) {
+            alert("no containers found");
+            return;
+        }
+        
+        var doSelectLastNode = false;
+        
+        $cts.each(function() {
+            $this = jQuery(this);
+            var id = type + $this.attr('id');
+            var childCount = $this.attr('child_count');
+            if (childCount) {
+                childCount = parseInt(childCount);
+            }
+            var expandable = childCount ? true : false;
+            
+            var autoscanType = $this.attr('autoscan_type');
+            var autoscanMode = $this.attr('autoscan_mode');
+            
+            var thisIconArray = iconArray;
+            if (autoscanType == 'ui') {
+                if (autoscanMode == 'inotify') {
+                    thisIconArray = autoscanInotifyIconArray;
+                } else {
+                    thisIconArray = autoscanTimedIconArray;
+                }
+            }
+            
+            if (autoscanType == 'persistent') {
+                if (autoscanMode == 'inotify') {
+                    thisIconArray = autoscanInotifyConfigIconArray;
+                } else {
+                    thisIconArray = autoscanTimedConfigIconArray;
+                }
+            }
+            
+            var title = $this.text();
+            var child = new TreeNode(id, title, thisIconArray);
+            
+            child.setHasChildren(expandable);
+            try {
+                node.addChild(child);
+            }
+            catch (e) {
+                return;
+            }
+            child.addOpenEventListener("openEventListener");
+            
+            if (id == lastNodeDbWish) {
+                lastNodeDbWish=null;
+                lastNodeDb = id;
+                doSelectLastNode = true;
+            } else if (id == lastNodeFsWish) {
+                lastNodeFsWish=null;
+                lastNodeFs = id;
+                doSelectLastNode = true;
+            }
         });
+        node.childrenHaveBeenFetched = true;
+        refreshOrQueueNode(node);
+        if (doSelectLastNode) {
+            selectLastNode();
+        } else if (selectIt) {
+            selectNodeIfVisible(parentId);
+        }
+    }
 }
 
-function updateTree(ajaxRequest)
-{
-    var xml = ajaxRequest.responseXML;
-    if (!errorCheck(xml)) return;
-    
-    var containers = xmlGetElement(xml, "containers");
-    if (! containers)
-    {
-        alert("no containers tag found");
-        return;
-    }
-    var type = xmlGetAttribute(containers, "type");
-    if (type == 'filesystem')
-        type = 'f';
-    else if (type == 'database')
-        type = 'd';
-    var ofId = xmlGetAttribute(containers, "parent_id");
-    var parentId = type+ofId;
-    
-    var node = getTreeNode(parentId);
-    var success = xmlGetElement(xml, 'root').getAttribute("success");
-    //alert(success);
-    if (! success || success != "1")
-    {
-        if (ofId == '0')
-        {
-            alert("Oops, your database seems to be corrupt. Please report this problem.");
-            return;
-        }
-        var parNode = node.getParent();
-        parNode.childrenHaveBeenFetched=false;
-        parNode.resetChildren();
-        fetchChildren(parNode, true, true);
-        return;
-    }
-    
-    var selectItStr = containers.getAttribute("select_it");
-    var selectIt = (selectItStr && selectItStr == '1');
-    
-    if (node.childrenHaveBeenFetched)
-    {
-        return;
-    }
-    var cts = containers.getElementsByTagName("container");
-    if (! cts)
-    {
-        alert("no containers found");
-        return;
-    }
-    
-    var i;
-    var len = cts.length;
-    var doSelectLastNode = false;
-    
-    for (var i = 0; i < len; i++)
-    {
-        var c = cts[i];
-        var id = type + xmlGetAttribute(c, "id");
-        
-        //TODO: childCount unnecessary? - hasChildren instead?
-        var childCount = xmlGetAttribute(c, "child_count");
-        if (childCount)
-            childCount = parseInt(childCount);
-        var expandable = childCount ? true : false;
-        
-        var autoscanType = xmlGetAttribute(c, "autoscan_type");
-        var autoscanMode = xmlGetAttribute(c, "autoscan_mode");
-        
-        var thisIconArray = iconArray;
-        if (autoscanType == 'ui')
-        {
-            if (autoscanMode == 'inotify')
-                thisIconArray = autoscanInotifyIconArray;
-            else
-                thisIconArray = autoscanTimedIconArray;
-        }
-        
-        if (autoscanType == 'persistent')
-        {
-            if (autoscanMode == 'inotify')
-                thisIconArray = autoscanInotifyConfigIconArray;
-            else
-                thisIconArray = autoscanTimedConfigIconArray;
-        }
-        
-        var title = xmlGetText(c);
-        var child = new TreeNode(id, title, thisIconArray);
-        
-        //TODO:
-        //child.setEditable(true);
-        
-        child.setHasChildren(expandable);
-        try
-        {
-            node.addChild(child);
-        }
-        catch (e)
-        {
-            return;
-        }
-        child.addOpenEventListener("openEventListener");
-        
-        if (id == lastNodeDbWish)
-        {
-            lastNodeDbWish=null;
-            lastNodeDb = id;
-            doSelectLastNode = true;
-        }
-        else if (id == lastNodeFsWish)
-        {
-            lastNodeFsWish=null;
-            lastNodeFs = id;
-            doSelectLastNode = true;
-        }
-    }
-    node.childrenHaveBeenFetched = true;
-    refreshOrQueueNode(node);
-    if (doSelectLastNode)
-        selectLastNode();
-    else if (selectIt)
-    {
-        selectNodeIfVisible(parentId);
-    }
-}
 var itemRoot;
 var topItemRoot
 var rightDocument;
@@ -2426,7 +2373,7 @@ function loadItems(id, start) {
             var itemButtons;
             itemButtons = itemButtonsTd;
             
-            var itemText = rightDocument.createTextNode(useFiles ? item.firstChild.nodeValue : xmlGetElementText(item, "title"));
+            var itemText = rightDocument.createTextNode(useFiles ? item.firstChild.nodeValue : jQuery(item).find('title').text());
             itemLink.appendChild(itemText);
             
             itemRow.appendChild(itemEntryTd);
@@ -2449,7 +2396,7 @@ function loadItems(id, start) {
                 
                 _addLink(rightDocument, itemButtons, false, "javascript:parent.userEditItemStart('"+item.getAttribute("id")+"');", "edit", iconEdit);
                 
-                itemLink.setAttribute("href", xmlGetElementText(item, "res"));
+                itemLink.setAttribute("href", jQuery(item).find('res').text());
                 
             }
             itemsTableBody.appendChild(itemRow);
@@ -2535,55 +2482,48 @@ function userAddItemStart() {
     Element.show(itemRoot);
 }
 
-function userEditItemStart(objectId)
-{
+function userEditItemStart(objectId) {
     var url = link("edit_load", {object_id: objectId}, true);
-    var myAjax = new Ajax.Request(
-        url,
-        {
-            method: 'get',
-            onComplete: userEditItemCallback
-        });
+    jQuery.ajax({
+        url: url,
+        success: callback
+    });
+    function callback(xml) {
+        if (!errorCheck(xml)) {
+            return;
+        }
+        var $item = jQuery(xml).find('item');
+        updateItemAddEditFields($item);
+        jQuery(itemRoot).hide();
+        itemRoot = jQuery('#item_add_edit_div');
+        jQuery(itemRoot).show();
+        use_inactivity_timeout_short = true;
+    }
 }
 
-function userEditItemCallback(ajaxRequest)
-{
-    var xml = ajaxRequest.responseXML;
-    if (!errorCheck(xml)) return;
-    var item = xmlGetElement(xml, "item");
-    updateItemAddEditFields(item);
-    Element.hide(itemRoot);
-    itemRoot = rightDocument.getElementById('item_add_edit_div');
-    Element.show(itemRoot);
-    use_inactivity_timeout_short = true;
-}
-
-function updateItemAddEditFields(editItem)
-{
+function updateItemAddEditFields($editItem) {
     var currentTypeOption;
     var form = rightDocument.forms['addEditItem'];
     var selectEl = form.elements['obj_type'];
     var submitEl = form.elements['submit'];
-    if (!editItem)
-    {
+    if ($editItem.length >= 0) {
         selectEl.disabled = false;
         submitEl.value = 'Add item...';
         currentTypeOption = selectEl.value;
-        if (!currentTypeOption) currentTypeOption = 'container';
+        if (!currentTypeOption) {
+            currentTypeOption = 'container';
+        }
         form.action = 'javascript:parent.itemAddEditSubmit();';
-    }
-    else
-    {
+    } else {
         selectEl.disabled = true;
         submitEl.value = 'Update item...';
-        currentTypeOption = xmlGetElementText(editItem, 'obj_type');
-        var objectId = editItem.getAttribute('object_id');
+        currentTypeOption = $editItem.find('obj_type').text();
+        var objectId = $editItem.attr('object_id');
         selectEl.value = currentTypeOption;
         form.action = 'javascript:parent.itemAddEditSubmit('+objectId+');';
     }
     
-    if (!selectEl.options[0])
-    {
+    if (!selectEl.options[0]) {
         // ATTENTION: These values need to be changed in src/cds_objects.h too.
         // Note: 'Active Item', 'External Link (URL)', 'Internal Link (Local URL)'
         // are also 'Items', so they have the item flag set too.
@@ -2651,14 +2591,15 @@ function updateItemAddEditFields(editItem)
             var inputEl = rightDocument.createElement('input');
             inputEl.setAttribute('type', 'text');
             inputEl.setAttribute('name', fieldNameAr[i]);
-            if (!editItem)
+            if ($editItem.length >= 0)
                 inputEl.setAttribute('value', defaultsAr[i]);
             else
             {
-                var xmlElement = xmlGetElement(editItem, fieldNameAr[i]);
-                inputEl.setAttribute('value', xmlGetText(xmlElement));
-                if(xmlElement.getAttribute('editable') != '1')
+                var $xmlElement = $(editItem).find(fieldNameAr[i]);
+                inputEl.setAttribute('value', $xmlElement.text());
+                if($xmlElement.attr('editable') !== '1') {
                     inputEl.setAttribute('disabled', 'disabled');
+                }
             }
             
             inputTd.appendChild(inputEl);
@@ -2754,130 +2695,116 @@ var autoscanId;
 var autoscanFromFs;
 var autoscanPersistent;
 
-function showAutoscanDirs()
-{
+function showAutoscanDirs() {
     setUIContext('db');
     var url = link('autoscan', {action: 'list'}, true);
-    var myAjax = new Ajax.Request(
-        url,
-        {
-            method: 'get',
-            onComplete: showAutoscanCallback
+    jQuery.ajax({
+        url: url,
+        success: callback
+    });
+    function callback(xml) {
+        if (!errorCheck(xml)) {
+            return;
+        }
+        var $autoscansXMLel = jQuery(xml).find('autoscans');
+        var $autoscans = jQuery($autoscansXMLel).find('autoscan');
+        if ($autoscansXMLel.length <= 0 || $autoscans.lenth <= 0) {
+            return;
+        }
+        
+        var autoscanHTMLel = rightDocument.createElement("div");
+        autoscanHTMLel.setAttribute("class", "itemsEl");
+        var itemsTable = rightDocument.createElement("table");
+        var itemsTableBody = rightDocument.createElement("tbody");
+        itemsTable.appendChild(itemsTableBody);
+        autoscanHTMLel.appendChild(itemsTable);
+        
+        $autoscans.each(function() {
+            $this = jQuery(this);
+            var itemRow = rightDocument.createElement("tr");
+            var itemEntryTd = rightDocument.createElement("td");
+            itemEntryTd.setAttribute("class", "itemEntry");
+            var itemEntry;
+            itemEntry = itemEntryTd;
+
+            
+            var autoscanMode = $this.find('scan_mode').text();
+            var autoscanFromConfig = $this.find('from_config').text() === '1';
+            
+            var icon;
+            var altText;
+            if (autoscanMode == "timed")
+                appendImgNode(rightDocument, itemEntry, "Timed-Autoscan:", (autoscanFromConfig ? iconContainerAutoscanTimedConfig : iconContainerAutoscanTimed));
+            else if (autoscanMode == "inotify")
+                appendImgNode(rightDocument, itemEntry, "Inotify-Autoscan:", (autoscanFromConfig ? iconContainerAutoscanInotifyConfig : iconContainerAutoscanInotify));
+            
+            var itemText = rightDocument.createTextNode(" " + $this.find('location').text());
+            itemEntry.appendChild(itemText);
+            
+            var itemButtonsTd = rightDocument.createElement("td");
+            itemButtonsTd.setAttribute("class", "itemButtons");
+            var itemButtons;
+            itemButtons = itemButtonsTd;
+            
+            itemRow.appendChild(itemEntryTd);
+            itemRow.appendChild(itemButtonsTd);
+            
+            _addLink(rightDocument, itemButtons, true, "javascript:parent.editLoadAutoscanDirectory('"+$this.attr('objectID')+"', false);", "edit", iconEditAutoscan);
+            
+            itemsTableBody.appendChild(itemRow);
         });
-}
-
-function showAutoscanCallback(ajaxRequest)
-{
-    var xml = ajaxRequest.responseXML
-    if (! errorCheck(xml)) return;
-    var autoscansXMLel = xmlGetElement(xml, "autoscans");
-    if (! autoscansXMLel) return;
-    var autoscans = autoscansXMLel.getElementsByTagName("autoscan");
-    if (autoscans.length <= 0) return;
-    
-    var autoscanHTMLel = rightDocument.createElement("div");
-    autoscanHTMLel.setAttribute("class", "itemsEl");
-    var itemsTable = rightDocument.createElement("table");
-    var itemsTableBody = rightDocument.createElement("tbody");
-    itemsTable.appendChild(itemsTableBody);
-    autoscanHTMLel.appendChild(itemsTable);
-    
-    for (var i = 0; i < autoscans.length; i++)
-    {
-        var itemRow = rightDocument.createElement("tr");
-        
-        var itemEntryTd = rightDocument.createElement("td");
-        itemEntryTd.setAttribute("class", "itemEntry");
-        
-        var itemEntry;
-        itemEntry = itemEntryTd;
-        var autoscanXMLel = autoscans[i];
-        
-        var autoscanMode = xmlGetElementText(autoscanXMLel, "scan_mode");
-        var autoscanFromConfig = xmlGetElementText(autoscanXMLel, "from_config") == "1";
-        
-        var icon;
-        var altText;
-        if (autoscanMode == "timed")
-            appendImgNode(rightDocument, itemEntry, "Timed-Autoscan:", (autoscanFromConfig ? iconContainerAutoscanTimedConfig : iconContainerAutoscanTimed));
-        else if (autoscanMode == "inotify")
-            appendImgNode(rightDocument, itemEntry, "Inotify-Autoscan:", (autoscanFromConfig ? iconContainerAutoscanInotifyConfig : iconContainerAutoscanInotify));
-        
-        var itemText = rightDocument.createTextNode(" " + xmlGetElementText(autoscanXMLel, "location"));
-        itemEntry.appendChild(itemText);
-        
-        var itemButtonsTd = rightDocument.createElement("td");
-        itemButtonsTd.setAttribute("class", "itemButtons");
-        var itemButtons;
-        itemButtons = itemButtonsTd;
-        
-        itemRow.appendChild(itemEntryTd);
-        itemRow.appendChild(itemButtonsTd);
-        
-        _addLink(rightDocument, itemButtons, true, "javascript:parent.editLoadAutoscanDirectory('"+autoscanXMLel.getAttribute("objectID")+"', false);", "edit", iconEditAutoscan);
-        
-        itemsTableBody.appendChild(itemRow);
+        jQuery(itemRoot).hide();
+        itemRoot = rightDocument.getElementById('autoscan_list_div');
+        itemRoot.replaceChild(autoscanHTMLel, itemRoot.firstChild);
+        jQuery(itemRoot).show();
     }
-    
-    Element.hide(itemRoot);
-    itemRoot = rightDocument.getElementById('autoscan_list_div');
-    itemRoot.replaceChild(autoscanHTMLel, itemRoot.firstChild);
-    Element.show(itemRoot);
 }
 
-function editLoadAutoscanDirectory(objectId, fromFs)
-{
+function editLoadAutoscanDirectory(objectId, fromFs) {
     var url = link("autoscan", {action: 'as_edit_load', object_id: objectId, from_fs: fromFs}, true);
-    var myAjax = new Ajax.Request(
-        url,
-        {
-            method: 'get',
-            onComplete: editLoadAutoscanDirectoryCallback
-        });
+    jQuery.ajax({
+        url: url,
+        success: callback
+    });
+    function callback(xml) {
+        if (!errorCheck(xml)) {
+            return;
+        }
+        var $autoscan = jQuery(xml).find('autoscan');
+        
+        updateAutoscanEditFields($autoscan);
+        scanModeChanged(true);
+        
+        if (autoscanPersistent) {
+            jQuery('#autoscan_persistent_message').show();
+            jQuery('#autoscan_set_button').hide();
+        } else {
+            jQuery('#autoscan_persistent_message').hide();
+            jQuery('#autoscan_set_button').show();
+        }
+        jQuery(itemRoot).hide(); 
+        itemRoot = jQuery('#autoscan_div')[0];
+        jQuery(itemRoot).show();
+    }
 }
 
-function editLoadAutoscanDirectoryCallback(ajaxRequest)
-{
-    var xml = ajaxRequest.responseXML;
-    if (!errorCheck(xml)) return;
-    var autoscan = xmlGetElement(xml, "autoscan");
-    
-    updateAutoscanEditFields(autoscan);
-    scanModeChanged(true);
-    
-    if (autoscanPersistent)
-    {
-        Element.show(document.getElementById("autoscan_persistent_message"));
-        Element.hide(document.getElementById("autoscan_set_button"));
-    }
-    else
-    {
-        Element.hide(document.getElementById("autoscan_persistent_message"));
-        Element.show(document.getElementById("autoscan_set_button"));
-    }
-    
-    Element.hide(itemRoot);
-    itemRoot = rightDocument.getElementById('autoscan_div');
-    Element.show(itemRoot);
-}
-
-function updateAutoscanEditFields(autoscan)
-{
-    autoscanId = xmlGetElementText(autoscan, 'object_id');
-    autoscanFromFs = xmlGetElementText(autoscan, 'from_fs') == '1';
+function updateAutoscanEditFields($autoscan) {
+    autoscanId = $autoscan.find('object_id').text();
+    autoscanFromFs = $autoscan.find('from_fs').text() === '1';
     var elements = rightDocument.forms['autoscanForm'].elements;
-    var scan_mode_checked = 'scan_mode_' + xmlGetElementText(autoscan, 'scan_mode');
-    var scan_level_checked = 'scan_level_' + xmlGetElementText(autoscan, 'scan_level');
-    var persistent = xmlGetElementText(autoscan, 'persistent');
-    if (persistent == '1')
+    var scan_mode_checked = 'scan_mode_' + $autoscan.find('scan_mode').text();
+    var scan_level_checked = 'scan_level_' + $autoscan.find('scan_level').text();
+    var persistent = $autoscan.find('persistent').text();
+    if (persistent == '1') {
         autoscanPersistent = true;
-    else
+    } else {
         autoscanPersistent = false;
+    }
     elements[scan_mode_checked].checked = true;
     elements[scan_level_checked].checked = true;
-    elements['recursive'].checked = xmlGetElementText(autoscan, 'recursive') == '1';
-    elements['hidden'].checked = xmlGetElementText(autoscan, 'hidden') == '1';
-    elements['interval'].value = xmlGetElementText(autoscan, 'interval');
+    elements['recursive'].checked = $autoscan.find('recursive').text() === '1';
+    elements['hidden'].checked = $autoscan.find('hidden').text() === '1';
+    elements['interval'].value = $autoscan.find('interval').text();
 }
 
 function autoscanSubmit()
