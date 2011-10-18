@@ -329,44 +329,35 @@ function formToArray(form, args)
 var status_updates_pending = false;
 var status_loading = false;
 
-function setStatus(status)
-{
-    var topDocument = frames["topF"].document;
-    
-    if (status == "idle" && status_loading)
-    {
+function setStatus(status) {
+    if (status == "idle" && status_loading) {
         status_loading = false;
-        Element.hide(topDocument.getElementById("statusWorking"));
-        if (status_updates_pending)
-            Element.show(topDocument.getElementById("statusUpdatesPending"));
-        else
-            Element.show(topDocument.getElementById("statusIdle"));
-    }
-    else if (status == "loading" && ! status_loading)
-    {
-        status_loading = true;
-        if (status_updates_pending)
-            Element.hide(topDocument.getElementById("statusUpdatesPending"));
-        else
-            Element.hide(topDocument.getElementById("statusIdle"));
-        Element.show(topDocument.getElementById("statusWorking"));
-    }
-    else if (status == "updates_pending" && ! status_updates_pending)
-    {
-        status_updates_pending = true;
-        if (! status_loading)
-        {
-            Element.hide(topDocument.getElementById("statusIdle"));
-            Element.show(topDocument.getElementById("statusUpdatesPending"));
+        jQuery('#statusWorking').hide();
+        if (status_updates_pending) {
+            jQuery('statusUpdatesPending').show();
         }
-    }
-    else if (status == "no_updates" && status_updates_pending)
-    {
+        else {
+            jQuery('statusIdle').show();
+        }
+    } else if (status == "loading" && ! status_loading) {
+        status_loading = true;
+        if (status_updates_pending) {
+            jQuery('statusUpdatesPending').hide();
+        } else {
+            jQuery('statusIdle').hide();
+        }
+        jQuery('#statusWorking').show();
+    } else if (status == "updates_pending" && ! status_updates_pending) {
+        status_updates_pending = true;
+        if (!status_loading) {
+            jQuery('statusIdle').hide();
+            jQuery('statusUpdatesPending').show();
+        }
+    } else if (status == "no_updates" && status_updates_pending) {
         status_updates_pending = false;
-        if (! status_loading)
-        {
-            Element.hide(topDocument.getElementById("statusUpdatesPending"));
-            Element.show(topDocument.getElementById("statusIdle"));
+        if (!status_loading) {
+            jQuery('statusUpdatesPending').hide();
+            jQuery('statusIdle').show();
         }
     }
 }
@@ -759,8 +750,8 @@ function gotToken(ajaxRequest)
     
     var token = xmlGetElementText(rootEl, "token");
     
-    var username = frames["topF"].document.login_form.username.value;
-    var password = frames["topF"].document.login_form.password.value;
+    var username = document.login_form.username.value;
+    var password = document.login_form.password.value;
     
     // create authentication password
     password = hex_md5(token + password);
@@ -774,21 +765,18 @@ function gotToken(ajaxRequest)
         });
 }
 
-function checkLogin(ajaxRequest)
-{
+function checkLogin(ajaxRequest) {
     var xml = ajaxRequest.responseXML;
     if (!errorCheck(xml)) return;
     
-    var topDocument = frames["topF"].document;
-    var rightDocument = frames["topF"].document;
-    var leftDocument = frames["topF"].document;
-    Element.hide(rightDocument.getElementById("loginDiv"));
-    Element.hide(leftDocument.getElementById("leftLoginDiv"));
-    Element.show(topDocument.getElementById("statusDiv"));
-    Element.show(frames["topF"].document.getElementById("treeDiv"));
-    jQuery('#context_switcher', frames['topF'].document).show();
-    if (ACCOUNTS)
-        Element.show(topDocument.getElementById("logout_link"));
+    jQuery('#loginDiv').hide();
+    jQuery('#leftLoginDiv').hide();
+    jQuery('#statusDiv').show();
+    jQuery('#treeDiv').show();
+    jQuery('#context_switcher').show();
+    if (ACCOUNTS) {
+        jQuery('#logout_link').show();
+    }
     loggedIn = true;
     initLoggedIn();
     updateTreeAfterLogin();
@@ -886,15 +874,15 @@ function getConfig() {
             }
             var haveInotify = ($configEl.attr('have-inotify') == '1');
             if (haveInotify) {
-                jQuery('#scan_mode_inotify', frames['topF'].document).show()
-                jQuery('#scan_mode_inotify_label', frames['topF'].document).show()
+                jQuery('#scan_mode_inotify').show()
+                jQuery('#scan_mode_inotify_label').show()
             }
             var $actionsEl = $configEl.find('actions');
             if ($actionsEl) {
                 var actions = $actionsEl.find('action');
                 for (var i = 0; i < actions.length; i++) {
                     var action = actions[i].firstChild.nodeValue;
-                    jQuery('action_' + action, frames['topF'].document).show();
+                    jQuery('action_' + action).show();
                 }
             }
         }
@@ -1506,7 +1494,7 @@ function selectNode(nodeID) {
     if (selectedNode == null || selectedNode != nodeID)
     {
         selectedNode = nodeID;
-	    var nodetitle = treeDocument.getElementById('title' + selectedNode);
+	    var nodetitle = jQuery('#title' + selectedNode);
         nodetitle.className = 'treetitleselectedfocused';
         ensureElementVisibility(treeWindow, treeDocument, nodetitle, 35);
     }
@@ -1807,8 +1795,8 @@ function getTreeNode(nodeID) {
 
 function treeInit()
 {
-    treeDocument = frames["topF"].document;
-    treeWindow = frames["topF"].window;
+    treeDocument = document;
+    treeWindow = window;
     
     documentID = "mediatombUI";
     
@@ -2123,26 +2111,26 @@ var showAddPages = 3;
 
 function itemInit()
 {
-    rightDocument = frames["topF"].document;
-    topRightDocument = frames["topF"].document;
-    dbItemRoot = rightDocument.getElementById("item_db_div");
-    fsItemRoot = rightDocument.getElementById("item_fs_div");
-    dbTopItemRoot = topRightDocument.getElementById("item_db_head");
-    fsTopItemRoot = topRightDocument.getElementById("item_fs_head");
+    rightDocument = document;
+    topRightDocument = document;
+    dbItemRoot = jQuery('#item_db_div');
+    fsItemRoot = jQuery('#item_fs_div');
+    dbTopItemRoot = jQuery('#item_db_head');
+    fsTopItemRoot = jQuery('#item_fs_head');
     itemChangeType('db');
-    if (viewItems == -1)
+    if (viewItems == -1) {
         viewItems = defaultViewItems;
+    }
 }
 
 
 function itemChangeType(context) {
-    var doc = frames['topF'].document;
     itemRoot = (context === 'db') ? dbItemRoot : fsItemRoot; // XXX global
     topItemRoot = (context === 'db') ? dbTopItemRoot : fsTopItemRoot; // XXX global
     if (context === 'db') {
-        jQuery('#item_db_div', doc).show();
+        jQuery('#item_db_div').show();
     } else if (context === 'db') {
-        jQuery('#item_fs_div', doc).show();
+        jQuery('#item_fs_div').show();
     }
 }
 
@@ -2547,9 +2535,6 @@ function loadItems(id, start) {
                 
                 itemLink.setAttribute("href", xmlGetElementText(item, "res"));
                 
-                // the target is needed, because otherwise we probably mess up one of
-                // our frames
-                itemLink.setAttribute("target", "mediatomb_target");
             }
             itemsTableBody.appendChild(itemRow);
         }
@@ -2955,13 +2940,13 @@ function editLoadAutoscanDirectoryCallback(ajaxRequest)
     
     if (autoscanPersistent)
     {
-        Element.show(frames["topF"].document.getElementById("autoscan_persistent_message"));
-        Element.hide(frames["topF"].document.getElementById("autoscan_set_button"));
+        Element.show(document.getElementById("autoscan_persistent_message"));
+        Element.hide(document.getElementById("autoscan_set_button"));
     }
     else
     {
-        Element.hide(frames["topF"].document.getElementById("autoscan_persistent_message"));
-        Element.show(frames["topF"].document.getElementById("autoscan_set_button"));
+        Element.hide(document.getElementById("autoscan_persistent_message"));
+        Element.show(document.getElementById("autoscan_set_button"));
     }
     
     Element.hide(itemRoot);
@@ -3081,42 +3066,37 @@ var pollWhenIdle = false;
 var pollIntervalTime = 2000;
 var showTooltips = true;
 
-function updateCurrentTask(taskEl)
-{
+function updateCurrentTask(taskEl) {
     var taskID = -1;
-    if (taskEl)
+    if (taskEl) {
         taskID = taskEl.getAttribute('id');
-    if (taskID != currentTaskID)
-    {
+    }
+    if (taskID != currentTaskID) {
         currentTaskID = taskID;
-        var topDocument = frames["topF"].document;
-        
-        var currentTaskTdEl = topDocument.getElementById("currentTaskTd");
-        if (taskID == -1)
-        {
-            if (! pollWhenIdle)
+
+        var $currentTaskTdEl = jQuery('#currentTaskTd');
+        if (taskID == -1) {
+            if (! pollWhenIdle) {
                 clearPollInterval();
-            Element.hide(currentTaskTdEl);
+            }
+            $currentTaskTdEl.hide();
         }
-        else
-        {
-            var currentTaskTxtEl = topDocument.getElementById("currentTaskText").firstChild;
+        else {
+            var currentTaskTxtEl = jQuery('#currentTaskText').children(':first');
             currentTaskTxtEl.replaceData(0, currentTaskTxtEl.length, taskEl.firstChild.data);
-            var cancelCurrentTaskEl = topDocument.getElementById("cancelCurrentTask");
-            var cancelCurrentTaskPlaceholderEl = topDocument.getElementById("cancelCurrentTaskPlaceholder");
-            if (taskEl.getAttribute("cancellable") == "1")
-            {
-                Element.hide(cancelCurrentTaskPlaceholderEl);
-                Element.show(cancelCurrentTaskEl);
+            var $cancelCurrentTaskEl = jQuery('#cancelCurrentTask');
+            var $cancelCurrentTaskPlaceholderEl = jQuery('#cancelCurrentTaskPlaceholder');
+            if (taskEl.getAttribute("cancellable") == "1") {
+                $cancelCurrentTaskPlaceholderEl.hide();
+                $cancelCurrentTaskEl.show();
+            } else {
+                $cancelCurrentTaskEl.hide();
+                $cancelCurrentTaskPlaceholderEl.show();
             }
-            else
-            {
-                Element.hide(cancelCurrentTaskEl);
-                Element.show(cancelCurrentTaskPlaceholderEl);
-            }
-            Element.show(currentTaskTdEl);
-            if (! pollWhenIdle) // will be started by getConfigCallback() (auth.js) otherwise
+            $currentTaskTdEl.show();
+            if (!pollWhenIdle) {
                 startPollInterval();
+            }
         }
     }
 }
@@ -3166,7 +3146,7 @@ var LOGGED_IN;// logged in?
               // is set by checkSID();
 var loggedIn = false;
 function init() {
-    jQuery('#context_switcher > button', frames['topF'].document).click(function(ev) {
+    jQuery('#context_switcher > button').click(function(ev) {
         ev.preventDefault();
         setUIContext($(this).value);
     });
@@ -3182,21 +3162,19 @@ function init() {
     
     getConfig();    
     checkSID();
-    var topDocument = frames["topF"].document;
-    var rightDocument = frames["topF"].document;
-    var leftDocument = frames["topF"].document;
+    var rightDocument = document;
     
     if (!SID || SID === null || !LOGGED_IN) {
-        jQuery('#loginDiv', rightDocument).show();
-        jQuery('#leftLoginDiv', leftDocument).show();
+        jQuery('#loginDiv').show();
+        jQuery('#leftLoginDiv').show();
     } else {
         loggedIn = true;
-        jQuery('#topDiv', topDocument).show();
-        jQuery('#treeDiv', leftDocument).show();
-        jQuery('#context_switcher', frames['topF'].document).show();
-        jQuery('#statusDiv', topDocument).show();
+        jQuery('#topDiv').show();
+        jQuery('#treeDiv').show();
+        jQuery('#context_switcher').show();
+        jQuery('#statusDiv').show();
         if (ACCOUNTS) {
-            jQuery('#logout_link', topDocument).show();
+            jQuery('#logout_link').show();
         }
     }
     var globalAjaxHandlers = {
@@ -3236,19 +3214,18 @@ function init() {
 function initLoggedIn(context) {
     itemInit();
     treeInit();
-    jQuery('#context_switcher > button[value=' + context + ']', frames['topF'].document).addClass('selected');
+    jQuery('#context_switcher > button[value=' + context + ']').addClass('selected');
     
-    frames["topF"].document.onkeypress=userActivity;
-    frames["topF"].document.onmousedown = mouseDownHandler;
-    frames["topF"].document.onmousedown = mouseDownHandler;
-    frames["topF"].document.onmousedown = mouseDownHandler;
-    frames["topF"].document.onmousedown = mouseDownHandler;
+    document.onkeypress=userActivity;
+    document.onmousedown = mouseDownHandler;
+    document.onmousedown = mouseDownHandler;
+    document.onmousedown = mouseDownHandler;
+    document.onmousedown = mouseDownHandler;
 }
 
 function setUIContext(context) {
-    var doc = frames["topF"].document;
-    jQuery('#context_switcher > button', doc).removeClass('selected');
-    jQuery('#context_switcher > button[value=' + context + ']', doc).addClass('selected');
+    jQuery('#context_switcher > button').removeClass('selected');
+    jQuery('#context_switcher > button[value=' + context + ']').addClass('selected');
     TYPE = context;
     jQuery.cookie('TYPE', context);
     setTreeContext(context);
