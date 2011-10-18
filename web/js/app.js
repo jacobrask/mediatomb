@@ -103,7 +103,6 @@ function appendImgNode(document, node, alt, icon)
     if (showTooltips) {
         img.setAttribute("title", alt);
     }
-    img.setAttribute("border", "0");
     img.setAttribute("width", icon.width);
     img.setAttribute("height", icon.height);
     node.appendChild(img);
@@ -252,54 +251,6 @@ function getTopOffset(el)
         el = el.offsetParent;
     }
     return offset;
-}
-
-function ensureElementVisibility(win, doc, el, bottomAdd)
-{
-    var viewheight;
-    if (win.innerHeight) // all except IE
-    {
-        viewheight = win.innerHeight;
-    }
-    else if (doc.documentElement && doc.documentElement.clientHeight)
-        // IE 6 Strict Mode
-    {
-        viewheight = doc.documentElement.clientHeight;
-    }
-    else if (doc.body) // other IEs
-    {
-        viewheight = doc.body.clientHeight;
-    }
-    
-    var scrollpos;
-    var xoffset;
-    if (win.pageYOffset) // all except IE
-    {
-        xoffset = win.pageXOffset;
-        scrollpos = win.pageYOffset;
-    }
-    else if (doc.documentElement && doc.documentElement.scrollTop)
-        // IE 6 Strict
-    {
-        xoffset = doc.documentElement.scrollLeft;
-        scrollpos = doc.documentElement.scrollTop;
-    }
-    else if (document.body) // all other IEs
-    {
-        xoffset = doc.body.scrollLeft;
-        scrollpos = doc.body.scrollTop;
-    }
-    
-    var elpos = getTopOffset(el);
-    
-    if (elpos<scrollpos)
-    {
-        win.scrollTo(xoffset, elpos);
-    }
-    else if (elpos>scrollpos+viewheight-bottomAdd)
-    {
-        win.scrollTo(xoffset, elpos-viewheight+bottomAdd);
-    }
 }
 
 function formToArray(form, args)
@@ -1475,7 +1426,6 @@ function selectNode(nodeID) {
         selectedNode = nodeID;
 	    var nodetitle = jQuery('#title' + selectedNode);
         nodetitle.className = 'treetitleselectedfocused';
-        ensureElementVisibility(treeWindow, treeDocument, nodetitle, 35);
     }
 	
 	if (treeNode.gotHandler()) {
@@ -2215,15 +2165,11 @@ function loadItems(id, start) {
             }
             
             var pagingTab1 = rightDocument.createElement("table");
-            pagingTab1.setAttribute("align", "center");
             var pagingTbody1 = rightDocument.createElement("tbody");
             var pagingRow = rightDocument.createElement("tr");
             var pagingCellLeft = rightDocument.createElement("td");
-            pagingCellLeft.setAttribute("align", "right");
             var pagingCellCenter = rightDocument.createElement("td");
-            pagingCellCenter.setAttribute("align", "center");
             var pagingCellRight = rightDocument.createElement("td");
-            pagingCellRight.setAttribute("align", "left");
             pagingTab1.appendChild(pagingTbody1);
             pagingTbody1.appendChild(pagingRow);
             pagingRow.appendChild(pagingCellLeft);
@@ -2257,12 +2203,10 @@ function loadItems(id, start) {
             if (showPagingPages)
             {
                 var pagingTab2 = rightDocument.createElement("table");
-                pagingTab2.setAttribute("align", "center");
                 var pagingTbody2 = rightDocument.createElement("tbody");
                 pagingTab2.appendChild(pagingTbody2);
                 var pagingPagesRow = rightDocument.createElement("tr");
                 var pagingPagesCell = rightDocument.createElement("td");
-                pagingPagesCell.setAttribute("align", "center");
                 pagingPagesCell.setAttribute("colspan", "3");
                 pagingTbody2.appendChild(pagingPagesRow);
                 pagingPagesRow.appendChild(pagingPagesCell);
@@ -2328,7 +2272,6 @@ function loadItems(id, start) {
         topItemsEl.appendChild(topTopDiv);
         
         var contTable = topRightDocument.createElement("table");
-        contTable.setAttribute("width", "100%");
         contTable.setAttribute("class", "contTable");
         var contTableBody = topRightDocument.createElement("tbody");
         contTable.appendChild(contTableBody);
@@ -2338,7 +2281,6 @@ function loadItems(id, start) {
         
         var leftDiv = topRightDocument.createElement("td");
         leftDiv.setAttribute("class", "contEntry");
-        leftDiv.setAttribute("valign", "middle");
         
         var contIcon = topRightDocument.createElement("img");
         leftDiv.appendChild(contIcon);
@@ -2349,7 +2291,6 @@ function loadItems(id, start) {
         
         var buttons = topRightDocument.createElement("td");
         buttons.setAttribute("class", "itemButtons");
-        buttons.setAttribute("align", "right");
         
         contRow.appendChild(leftDiv);
         contRow.appendChild(buttons);
@@ -2467,14 +2408,11 @@ function loadItems(id, start) {
         }
         
         var itemsTable = rightDocument.createElement("table");
-        itemsTable.setAttribute("width", "100%");
-        itemsTable.setAttribute("cellspacing", "0");
         var itemsTableBody = rightDocument.createElement("tbody");
         itemsTable.appendChild(itemsTableBody);
         itemsEl.appendChild(itemsTable);
         for (var i = 0; i < children.length; i++) {
             var itemRow = rightDocument.createElement("tr");
-            itemRow.setAttribute("class", (i % 2 == 0 ? "itemRowA" : "itemRowB"));
             var item = children[i];
             var itemEntryTd = rightDocument.createElement("td");
             itemEntryTd.setAttribute("class", "itemEntry");
@@ -2485,7 +2423,6 @@ function loadItems(id, start) {
             
             var itemButtonsTd = rightDocument.createElement("td");
             itemButtonsTd.setAttribute("class", "itemButtons");
-            itemButtonsTd.setAttribute("align", "right");
             var itemButtons;
             itemButtons = itemButtonsTd;
             
@@ -2558,14 +2495,12 @@ function _addItemsPerPage(itemsPerPageEl) {
     }
 }
 
-function _addLink(useDocument, addToElement, first, href, text, icon, seperator, target)
+function _addLink(useDocument, addToElement, first, href, text, icon, seperator)
 {
     
     var link = useDocument.createElement("a");
     addToElement.appendChild(link);
     link.setAttribute("href", href);
-    if (target)
-        link.setAttribute("target", target);
     
     if (icon)
         appendImgNode(useDocument, link, text, icon);
@@ -2709,7 +2644,6 @@ function updateItemAddEditFields(editItem)
             itemTbody.appendChild(inputTr);
             var inputTd = rightDocument.createElement('td');
             inputTr.appendChild(inputTd);
-            inputTd.setAttribute("align", "right");
             inputTd.appendChild(rightDocument.createTextNode(fieldAr[i]+": "));
             
             var inputTd = rightDocument.createElement('td');
@@ -2717,7 +2651,6 @@ function updateItemAddEditFields(editItem)
             var inputEl = rightDocument.createElement('input');
             inputEl.setAttribute('type', 'text');
             inputEl.setAttribute('name', fieldNameAr[i]);
-            inputEl.setAttribute('size', '40');
             if (!editItem)
                 inputEl.setAttribute('value', defaultsAr[i]);
             else
@@ -2845,8 +2778,6 @@ function showAutoscanCallback(ajaxRequest)
     var autoscanHTMLel = rightDocument.createElement("div");
     autoscanHTMLel.setAttribute("class", "itemsEl");
     var itemsTable = rightDocument.createElement("table");
-    itemsTable.setAttribute("width", "100%");
-    itemsTable.setAttribute("cellspacing", "0");
     var itemsTableBody = rightDocument.createElement("tbody");
     itemsTable.appendChild(itemsTableBody);
     autoscanHTMLel.appendChild(itemsTable);
@@ -2854,7 +2785,6 @@ function showAutoscanCallback(ajaxRequest)
     for (var i = 0; i < autoscans.length; i++)
     {
         var itemRow = rightDocument.createElement("tr");
-        itemRow.setAttribute("class", (i % 2 == 0 ? "itemRowA" : "itemRowB"));
         
         var itemEntryTd = rightDocument.createElement("td");
         itemEntryTd.setAttribute("class", "itemEntry");
@@ -2878,7 +2808,6 @@ function showAutoscanCallback(ajaxRequest)
         
         var itemButtonsTd = rightDocument.createElement("td");
         itemButtonsTd.setAttribute("class", "itemButtons");
-        itemButtonsTd.setAttribute("align", "right");
         var itemButtons;
         itemButtons = itemButtonsTd;
         
