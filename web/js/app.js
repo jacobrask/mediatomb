@@ -867,7 +867,7 @@ function checkLogin(ajaxRequest)
     //Element.show(topDocument.getElementById("topDiv"));
     Element.show(topDocument.getElementById("statusDiv"));
     Element.show(frames["leftF"].document.getElementById("treeDiv"));
-    Element.show(frames["topleftF"].document.getElementById("db_fs_selector"));
+    jQuery('#context_switcher', frames['topleftF'].document).show();
     if (ACCOUNTS)
         Element.show(topDocument.getElementById("logout_link"));
     loggedIn = true;
@@ -3260,7 +3260,7 @@ var autoscanPersistent;
 
 function showAutoscanDirs()
 {
-    setType('db');
+    setUIContext('db');
     var url = link('autoscan', {action: 'list'}, true);
     var myAjax = new Ajax.Request(
         url,
@@ -3659,6 +3659,10 @@ if (isMSIE)
     }
 }
 function init() {
+    jQuery('#context_switcher > button', frames['topleftF'].document).click(function(ev) {
+        ev.preventDefault();
+        setUIContext($(this).value);
+    });
     Try.these
     (
         function()
@@ -3703,7 +3707,7 @@ function init() {
         loggedIn = true;
         Element.show(topDocument.getElementById("topDiv"));
         Element.show(leftDocument.getElementById("treeDiv"));
-        Element.show(frames["topleftF"].document.getElementById("db_fs_selector"));
+        jQuery('#context_switcher', frames['topleftF'].document).show();
         Element.show(topDocument.getElementById("statusDiv"));
         if (ACCOUNTS)
             Element.show(topDocument.getElementById("logout_link"));
@@ -3754,24 +3758,12 @@ function initLoggedIn()
     frames["toprightF"].document.onmousedown = mouseDownHandler;
 }
 
-function setType(tmpType)
-{
-    var topLeftDocument = frames["topleftF"].document;
-    var deselectedEl = topLeftDocument.getElementById('type_' + TYPE);
-    var selectedEl = topLeftDocument.getElementById('type_' + tmpType);
-    
-    if (deselectedEl != selectedEl)
-    {
-        Element.removeClassName(deselectedEl, 'selected');
-        Element.addClassName(selectedEl, 'selected');
-    }
-    //$('type_' + otherType).removeClassName('selected');
-    //$('type_' + tmpType).addClassName('selected');
-    //Element.addClassName('type_' + tmpType, 'selected');
-    //Element.removeClassName('type_' + otherType, 'selected');
-    TYPE = tmpType;
-    setCookie("TYPE", TYPE);
+function setUIContext(context) {
+    var doc = frames["topleftF"].document;
+    jQuery('.selected', doc).removeClass('selected');
+    jQuery('#type_' + context, doc).addClass('selected');
+    TYPE = context;
+    jQuery.cookie('TYPE', context);
     treeChangeType();
     itemChangeType();
-    return undefined;
 }
