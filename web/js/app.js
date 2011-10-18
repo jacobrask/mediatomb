@@ -159,14 +159,9 @@ function errorCheck(xml, noredirect)
         return false;
     }
     
-    if (redirect)
-    {
-        var now = new Date();
-        var expire = new Date();
-        expire.setTime(now.getTime() - 3600000 * 24 * 360);
-        setCookie('SID', null, expire);
-        if (SID && ! noredirect)
-        {
+    if (redirect) {
+        jQuery.cookie('SID', null);
+        if (SID && ! noredirect) {
             SID = null;
             window.location = redirect;
         }
@@ -899,7 +894,7 @@ function checkSIDcallback(ajaxRequest)
         if (newSID)
         {
             SID = newSID;
-            setCookie("SID", SID);
+            jQuery.cookie("SID", SID);
         }
     }
     LOGGED_IN = xmlGetAttribute(rootEl, "logged_in") == "1";
@@ -920,10 +915,7 @@ function logout()
 function handleLogout(ajaxRequest)
 {
     errorCheck(ajaxRequest.responseXML);
-    var now = new Date();
-    var expire = new Date();
-    expire.setTime(now.getTime() - 3600000 * 24 * 360);
-    setCookie('SID', null, expire);
+    jQuery.cookie('SID', null);
     SID = null;
     window.location = '/';
 }
@@ -1292,8 +1284,7 @@ function findNodeWithID(node,nodeID) {
 	}
 }
 function readStates() {
-	//setCookie('tree' + documentID,'');
-	states = getCookie('tree' + documentID);
+	states = jQuery.cookie('tree' + documentID);
 	if (states != null) {
 		var array = states.split(';');
 		for(var i=0;i<array.length;i++) {
@@ -1337,7 +1328,7 @@ function writeStates(nodeID,newstate) {
 			str += nodeID + '|' + newstate + ';';
 		}
 	}
-	setCookie('tree' + documentID,str);
+	jQuery.cookie('tree' + documentID,str);
 }
 function showTree(path) {
 	readStates();
@@ -1796,39 +1787,6 @@ function focusSelection() {
             oldNodeTitle.className = 'treetitleselectedfocused';
 	}
 }
-function getCookieVal (offset) {  
-	var endstr = document.cookie.indexOf (";",offset);  
-	if (endstr == -1) {
-		endstr = document.cookie.length;
-	}
-	return unescape(document.cookie.substring(offset,endstr));
-}
-function getCookie (name) {  
-	var arg = name + "=";
-	var alen = arg.length;
-	var clen = document.cookie.length;
-	var i = 0;
-	while (i < clen) {
-		var j = i + alen;
-		if (document.cookie.substring(i, j) == arg) {
-			return getCookieVal(j);
-		}
-		i = document.cookie.indexOf(" ", i) + 1;
-		if (i == 0) {
-			break;
-		}
-	}
-	return null;
-}
-function setCookie (name, value) {  
-	var argv = setCookie.arguments;  
-	var argc = setCookie.arguments.length;  
-	var expires = (argc > 2) ? argv[2] : null;  
-	var path = (argc > 3) ? argv[3] : null;  
-	var domain = (argc > 4) ? argv[4] : null;  
-	var secure = (argc > 5) ? argv[5] : false;  
-	document.cookie = name + "=" + escape (value) + ((expires == null) ? "" : ("; expires=" + expires.toGMTString())) + ((path == null) ? "" : ("; path=" + path)) + ((domain == null) ? "" : ("; domain=" + domain)) + ((secure == true) ? "; secure" : "");
-}
 function expandNode() {
 	var state = getState(selectedNode);
 	if (state == 'open') {
@@ -2155,7 +2113,7 @@ function standardClick(treeNode)
     {
         if (id.substr(0,1) == 'd')
         {
-            setCookie('lastNodeDb', id);
+            jQuery.cookie('lastNodeDb', id);
             lastNodeDb = id;
             lastNodeDbWish = null;
             folderChange(id);
@@ -2165,7 +2123,7 @@ function standardClick(treeNode)
     {
         if (id.substr(0,1) == 'f')
         {
-            setCookie('lastNodeFs', id);
+            jQuery.cookie('lastNodeFs', id);
             lastNodeFs = id;
             lastNodeFsWish = null;
             folderChange(id);
@@ -3199,7 +3157,7 @@ function changeItemsPerPage(formId)
     if (newViewItems != viewItems)
     {
         viewItems = newViewItems;
-        setCookie("viewItems", viewItems);
+        jQuery.cookie("viewItems", viewItems);
         folderChange(selectedNode);
     }
 }
@@ -3631,55 +3589,27 @@ var ACCOUNTS; // accounts enabled or disabled
 var LOGGED_IN;// logged in?
               // is set by checkSID();
 var loggedIn = false;
-var isMSIE = /MSIE/.test(navigator.userAgent);
-if (isMSIE)
-{
-    var msieWarn = getCookie("MSIEwarn");
-    if (msieWarn != "ok")
-    {
-        setCookie("MSIEwarn", "ok");
-        alert('MediaTomb UI is very limited with Internet Explorer and some elements will be displayed incorrectly! Please see the section "Internet Explorer" in the README file.');
-    }
-}
 function init() {
     jQuery('#context_switcher > button', frames['topleftF'].document).click(function(ev) {
         ev.preventDefault();
         setUIContext($(this).value);
     });
-    Try.these
-    (
-        function()
-        {
-            TYPE = getCookie("TYPE");
-            SID = getCookie("SID");
-            lastNodeDbWish = getCookie("lastNodeDb");
-            lastNodeFsWish = getCookie("lastNodeFs");
-            var cookieViewItems = getCookie("viewItems");
-            if (cookieViewItems)
-                viewItems = cookieViewItems;
-        },
-        function()
-        {
-            alert("getCookie-Fehler");
-        }
-    );
+    TYPE = jQuery.cookie('TYPE');
+    SID = jQuery.cookie('SID');
+    lastNodeDbWish = jQuery.cookie('lastNodeDb');
+    lastNodeFsWish = jQuery.cookie('lastNodeFs');
+    var cookieViewItems = jQuery.cookie('viewItems');
+    if (cookieViewItems) {
+        viewItems = cookieViewItems;
+    }
     if (TYPE!="db" && TYPE!="fs") TYPE="db";
     
-    //if (SID && SID != null && SID != 'null')
     getConfig();    
     checkSID();
     var topDocument = frames["topF"].document;
     var rightDocument = frames["rightF"].document;
     var leftDocument = frames["leftF"].document;
     
-    /*
-    var logoutLinkEl = topDocument.getElementById("logout_link");
-    if (ACCOUNTS)
-        Element.show(logoutLinkEl);
-    else
-        Element.hide(logoutLinkEl);
-    */
-        
     if (!SID || SID == null || ! LOGGED_IN)
     {
         Element.show(rightDocument.getElementById("loginDiv"));
@@ -3723,16 +3653,16 @@ function init() {
             }
         }
     };
-    if (loggedIn)
-        initLoggedIn();
+    if (loggedIn) {
+        initLoggedIn(TYPE);
+    }
     Ajax.Responders.register(globalAjaxHandlers);
 }
 
-function initLoggedIn()
-{
+function initLoggedIn(context) {
     itemInit();
     treeInit();
-    Element.addClassName(frames["topleftF"].document.getElementById('type_' + TYPE), 'selected');
+    jQuery('#context_switcher > button[value=' + context + ']', frames['topleftF'].document).addClass('selected');
     
     frames["rightF"].document.onkeypress=userActivity;
     frames["rightF"].document.onmousedown = mouseDownHandler;
@@ -3743,8 +3673,8 @@ function initLoggedIn()
 
 function setUIContext(context) {
     var doc = frames["topleftF"].document;
-    jQuery('.selected', doc).removeClass('selected');
-    jQuery('#type_' + context, doc).addClass('selected');
+    jQuery('#context_switcher > button', doc).removeClass('selected');
+    jQuery('#context_switcher > button[value=' + context + ']', doc).addClass('selected');
     TYPE = context;
     jQuery.cookie('TYPE', context);
     setTreeContext(context);
