@@ -77,9 +77,22 @@
                 </tr>
              </table>
         </div>
-        <noscript>
-            <p align="center" style="font-size: 25px; font-weight: bold;">MEDIATOMB</p>
-            <p align="center"><span style="color:red">Error:</span> The UI of MediaTomb desperately needs a JavaScript enabled browser.</p>
-        </noscript>
-    </body>
+    <div id="context_switcher" style="display:none;">
+        <button
+            name="context_switcher"
+            value="db">Database</button>
+        <button
+            name="context_switcher"
+            value="fs">Filesystem</button>
+    </div>
+    <div id="item_db_div" style="display:none">
+        <div></div>
+    </div>
+    <div id="item_fs_div" style="display:none">
+        <div></div>
+    </div>
+    <div id="item_autoscan_div" style="display:none">
+        <div></div>
+    </div>
+</body>
 </html>

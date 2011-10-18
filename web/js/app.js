@@ -786,7 +786,7 @@ function checkLogin(ajaxRequest)
     Element.hide(leftDocument.getElementById("leftLoginDiv"));
     Element.show(topDocument.getElementById("statusDiv"));
     Element.show(frames["leftF"].document.getElementById("treeDiv"));
-    jQuery('#context_switcher', frames['topleftF'].document).show();
+    jQuery('#context_switcher', frames['topF'].document).show();
     if (ACCOUNTS)
         Element.show(topDocument.getElementById("logout_link"));
     loggedIn = true;
@@ -2110,7 +2110,6 @@ function updateTree(ajaxRequest)
 var itemRoot;
 var topItemRoot
 var rightDocument;
-var topRightDocument;
 
 var dbItemRoot;
 var fsItemRoot;
@@ -2125,7 +2124,7 @@ var showAddPages = 3;
 function itemInit()
 {
     rightDocument = frames["rightF"].document;
-    topRightDocument = frames["toprightF"].document;
+    topRightDocument = frames["topF"].document;
     dbItemRoot = rightDocument.getElementById("item_db_div");
     fsItemRoot = rightDocument.getElementById("item_fs_div");
     dbTopItemRoot = topRightDocument.getElementById("item_db_div");
@@ -2137,7 +2136,7 @@ function itemInit()
 
 
 function itemChangeType(context) {
-    var doc = frames['toprightF'].document;
+    var doc = frames['topF'].document;
     itemRoot = (context === 'db') ? dbItemRoot : fsItemRoot; // XXX global
     topItemRoot = (context === 'db') ? dbTopItemRoot : fsTopItemRoot; // XXX global
     if (context === 'db') {
@@ -3167,7 +3166,7 @@ var LOGGED_IN;// logged in?
               // is set by checkSID();
 var loggedIn = false;
 function init() {
-    jQuery('#context_switcher > button', frames['topleftF'].document).click(function(ev) {
+    jQuery('#context_switcher > button', frames['topF'].document).click(function(ev) {
         ev.preventDefault();
         setUIContext($(this).value);
     });
@@ -3194,7 +3193,7 @@ function init() {
         loggedIn = true;
         jQuery('#topDiv', topDocument).show();
         jQuery('#treeDiv', leftDocument).show();
-        jQuery('#context_switcher', frames['topleftF'].document).show();
+        jQuery('#context_switcher', frames['topF'].document).show();
         jQuery('#statusDiv', topDocument).show();
         if (ACCOUNTS) {
             jQuery('#logout_link', topDocument).show();
@@ -3237,17 +3236,17 @@ function init() {
 function initLoggedIn(context) {
     itemInit();
     treeInit();
-    jQuery('#context_switcher > button[value=' + context + ']', frames['topleftF'].document).addClass('selected');
+    jQuery('#context_switcher > button[value=' + context + ']', frames['topF'].document).addClass('selected');
     
     frames["rightF"].document.onkeypress=userActivity;
     frames["rightF"].document.onmousedown = mouseDownHandler;
     frames["topF"].document.onmousedown = mouseDownHandler;
-    frames["topleftF"].document.onmousedown = mouseDownHandler;
-    frames["toprightF"].document.onmousedown = mouseDownHandler;
+    frames["topF"].document.onmousedown = mouseDownHandler;
+    frames["topF"].document.onmousedown = mouseDownHandler;
 }
 
 function setUIContext(context) {
-    var doc = frames["topleftF"].document;
+    var doc = frames["topF"].document;
     jQuery('#context_switcher > button', doc).removeClass('selected');
     jQuery('#context_switcher > button[value=' + context + ']', doc).addClass('selected');
     TYPE = context;
