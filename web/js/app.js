@@ -759,8 +759,8 @@ function gotToken(ajaxRequest)
     
     var token = xmlGetElementText(rootEl, "token");
     
-    var username = frames["rightF"].document.login_form.username.value;
-    var password = frames["rightF"].document.login_form.password.value;
+    var username = frames["topF"].document.login_form.username.value;
+    var password = frames["topF"].document.login_form.password.value;
     
     // create authentication password
     password = hex_md5(token + password);
@@ -780,12 +780,12 @@ function checkLogin(ajaxRequest)
     if (!errorCheck(xml)) return;
     
     var topDocument = frames["topF"].document;
-    var rightDocument = frames["rightF"].document;
-    var leftDocument = frames["leftF"].document;
+    var rightDocument = frames["topF"].document;
+    var leftDocument = frames["topF"].document;
     Element.hide(rightDocument.getElementById("loginDiv"));
     Element.hide(leftDocument.getElementById("leftLoginDiv"));
     Element.show(topDocument.getElementById("statusDiv"));
-    Element.show(frames["leftF"].document.getElementById("treeDiv"));
+    Element.show(frames["topF"].document.getElementById("treeDiv"));
     jQuery('#context_switcher', frames['topF'].document).show();
     if (ACCOUNTS)
         Element.show(topDocument.getElementById("logout_link"));
@@ -886,8 +886,8 @@ function getConfig() {
             }
             var haveInotify = ($configEl.attr('have-inotify') == '1');
             if (haveInotify) {
-                jQuery('#scan_mode_inotify', frames['rightF'].document).show()
-                jQuery('#scan_mode_inotify_label', frames['rightF'].document).show()
+                jQuery('#scan_mode_inotify', frames['topF'].document).show()
+                jQuery('#scan_mode_inotify_label', frames['topF'].document).show()
             }
             var $actionsEl = $configEl.find('actions');
             if ($actionsEl) {
@@ -1807,8 +1807,8 @@ function getTreeNode(nodeID) {
 
 function treeInit()
 {
-    treeDocument = frames["leftF"].document;
-    treeWindow = frames["leftF"].window;
+    treeDocument = frames["topF"].document;
+    treeWindow = frames["topF"].window;
     
     documentID = "mediatombUI";
     
@@ -2123,12 +2123,12 @@ var showAddPages = 3;
 
 function itemInit()
 {
-    rightDocument = frames["rightF"].document;
+    rightDocument = frames["topF"].document;
     topRightDocument = frames["topF"].document;
     dbItemRoot = rightDocument.getElementById("item_db_div");
     fsItemRoot = rightDocument.getElementById("item_fs_div");
-    dbTopItemRoot = topRightDocument.getElementById("item_db_div");
-    fsTopItemRoot = topRightDocument.getElementById("item_fs_div");
+    dbTopItemRoot = topRightDocument.getElementById("item_db_head");
+    fsTopItemRoot = topRightDocument.getElementById("item_fs_head");
     itemChangeType('db');
     if (viewItems == -1)
         viewItems = defaultViewItems;
@@ -2955,13 +2955,13 @@ function editLoadAutoscanDirectoryCallback(ajaxRequest)
     
     if (autoscanPersistent)
     {
-        Element.show(frames["rightF"].document.getElementById("autoscan_persistent_message"));
-        Element.hide(frames["rightF"].document.getElementById("autoscan_set_button"));
+        Element.show(frames["topF"].document.getElementById("autoscan_persistent_message"));
+        Element.hide(frames["topF"].document.getElementById("autoscan_set_button"));
     }
     else
     {
-        Element.hide(frames["rightF"].document.getElementById("autoscan_persistent_message"));
-        Element.show(frames["rightF"].document.getElementById("autoscan_set_button"));
+        Element.hide(frames["topF"].document.getElementById("autoscan_persistent_message"));
+        Element.show(frames["topF"].document.getElementById("autoscan_set_button"));
     }
     
     Element.hide(itemRoot);
@@ -3183,8 +3183,8 @@ function init() {
     getConfig();    
     checkSID();
     var topDocument = frames["topF"].document;
-    var rightDocument = frames["rightF"].document;
-    var leftDocument = frames["leftF"].document;
+    var rightDocument = frames["topF"].document;
+    var leftDocument = frames["topF"].document;
     
     if (!SID || SID === null || !LOGGED_IN) {
         jQuery('#loginDiv', rightDocument).show();
@@ -3238,8 +3238,8 @@ function initLoggedIn(context) {
     treeInit();
     jQuery('#context_switcher > button[value=' + context + ']', frames['topF'].document).addClass('selected');
     
-    frames["rightF"].document.onkeypress=userActivity;
-    frames["rightF"].document.onmousedown = mouseDownHandler;
+    frames["topF"].document.onkeypress=userActivity;
+    frames["topF"].document.onmousedown = mouseDownHandler;
     frames["topF"].document.onmousedown = mouseDownHandler;
     frames["topF"].document.onmousedown = mouseDownHandler;
     frames["topF"].document.onmousedown = mouseDownHandler;
