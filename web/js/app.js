@@ -870,34 +870,26 @@ function checkLogin(ajaxRequest)
     updateTreeAfterLogin();
 }
 
-function checkSID()
-{
+function checkSID() {
     var url = link('auth', {action: 'get_sid'});
-    var myAjax = new Ajax.Request(
-        url,
-        {
-            method: 'get',
-            asynchronous: false,
-            onComplete: checkSIDcallback
-        });
-}
-
-function checkSIDcallback(ajaxRequest)
-{
-    var xml = ajaxRequest.responseXML;
-    errorCheck(xml, true);
-    var rootEl = xmlGetElement(xml, "root");
-    var sidWasValid = xmlGetAttribute(rootEl, "sid_was_valid") == "1";
-    if (! sidWasValid)
-    {
-        var newSID = xmlGetAttribute(rootEl, "sid");
-        if (newSID)
-        {
-            SID = newSID;
-            jQuery.cookie("SID", SID);
+    jQuery.ajax({
+        url: url,
+        async: false,
+        success: callback
+    });
+    function callback(xml) {
+        errorCheck(xml, true);
+        var rootEl = jQuery(xml).find('root');
+        var sidWasValid = jQuery(rootEl).find('sid_was_valid') === '1';
+        if (!sidWasValid) {
+            var newSID = jQuery(rootEl).attr('sid');
+            if (newSID) {
+                SID = newSID;
+                jQuery.cookie("SID", SID);
+            }
         }
+        LOGGED_IN = jQuery(rootEl).attr('logged_in') === '1';
     }
-    LOGGED_IN = xmlGetAttribute(rootEl, "logged_in") == "1";
 }
 
 function logout()
