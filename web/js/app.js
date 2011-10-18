@@ -59,8 +59,9 @@ function link(req_type, param, get_update_ids)
             }
             url += "&" + encodeURIComponent(key) +"="+ encodeURIComponent(param[key]);
         }
-    if (! got_update_param && get_update_ids && isTypeDb() && dbStuff.treeShown)
+    if (!got_update_param && get_update_ids && isTypeDb() && dbStuff.treeShown) {
         url += "&updates=check";
+    }
     return url;
 }
 
@@ -1240,11 +1241,6 @@ function TreeNode(id,name,icon,param,orderNumber) {
 	
 }
 
-/* overridden in tree.js to serve use the correct rootNode
-function getTreeNode(nodeID) {
-	return findNodeWithID(rootNode,nodeID);
-}
-*/
 
 function findNodeWithID(node,nodeID) {
 	if (node.getID() == nodeID) {
@@ -2332,6 +2328,8 @@ function itemInit()
     topRightDocument = frames["toprightF"].document;
     dbItemRoot = rightDocument.getElementById("item_db_div");
     fsItemRoot = rightDocument.getElementById("item_fs_div");
+    dbTopItemRoot = topRightDocument.getElementById("item_db_div");
+    fsTopItemRoot = topRightDocument.getElementById("item_fs_div");
     itemChangeType('db');
     if (viewItems == -1)
         viewItems = defaultViewItems;
@@ -2341,7 +2339,7 @@ function itemInit()
 function itemChangeType(context) {
     var doc = frames['toprightF'].document;
     itemRoot = (context === 'db') ? dbItemRoot : fsItemRoot; // XXX
-    topItemRoot = itemRoot; // XXX
+    topItemRoot = (context === 'db') ? dbTopItemRoot : fsTopItemRoot; // XXX
     if (context === 'db') {
         jQuery('#item_db_div', doc).show();
     } else if (context === 'db') {
@@ -2362,11 +2360,11 @@ function folderChange(id)
         loadItems(id, 0);
 }
 
-function loadItems(id, start)
-{
-    if (start % viewItems != 0)
+function loadItems(id, start) {
+    if (start % viewItems != 0) {
         start = Math.floor((start / viewItems)) * viewItems;
-    
+    }
+
     lastItemStart = start;
     lastFolder = id;
     
@@ -2374,498 +2372,424 @@ function loadItems(id, start)
     id = id.substring(1);
     var itemLink = type == 'd' ? 'items' : 'files';
     var url = link(itemLink, {parent_id: id, start: start, count: viewItems}, true);
-    var myAjax = new Ajax.Request(
-        url,
-        {
-            method: 'get',
-            onComplete: updateItems
-        });
-}
+    jQuery.ajax({
+        url: url,
+        success: callback
+    });
 
-function updateItems(ajaxRequest)
-{
-    var xml = ajaxRequest.responseXML;
-    if (!errorCheck(xml)) return;
-    
-    var items = xmlGetElement(xml, "items");
-    var useFiles = false;
-    var childrenTag = "item";
-    if (! items)
-    {
-        items = xmlGetElement(xml, "files");
-        if (! items)
-        {
-            alert("no items or files tag found");
+    function callback(xml) {
+        if (!errorCheck(xml)) return;
+        
+        var $items = jQuery(xml).find('items');
+        var useFiles = false;
+        var childrenTag = 'item';
+        if ($items.length <= 0) {
+            $items = jQuery(xml).find('files');
+            if ($items.length <= 0) {
+                alert("no items or files tag found");
+                return;
+            }
+            useFiles = true;
+            childrenTag = 'file';
+        }
+
+        var ofId = $items.attr('parent_id');
+        var success = jQuery(xml).find('root').attr('success');
+        if (success !== '1') {
+            if (ofId == '0') {
+                alert("Oops, your database seems to be corrupt. Please report this problem.");
+                return;
+            }
+            var prefix = (useFiles ? 'f' : 'd');
+            var node = getTreeNode(prefix + ofId);
+            var parNode = node.getParent();
+            parNode.childrenHaveBeenFetched=false;
+            parNode.resetChildren();
+            fetchChildren(parNode, true, true);
             return;
         }
-        useFiles = true;
-        childrenTag = "file";
-    }
-    
-    var ofId = items.getAttribute("parent_id");
-    var success = xmlGetElement(xml, 'root').getAttribute("success");
-    //alert(success);
-    //alert(xml);
-    if (! success || success != "1")
-    {
-        if (ofId == '0')
-        {
-            alert("Oops, your database seems to be corrupt. Please report this problem.");
-            return;
-        }
-        var prefix = (useFiles ? 'f' : 'd');
-        var node = getTreeNode(prefix + ofId);
-        var parNode = node.getParent();
-        parNode.childrenHaveBeenFetched=false;
-        parNode.resetChildren();
-        fetchChildren(parNode, true, true);
-        //selectNode(parNode.getID());
-        //alert("no success!");
-        return;
-    }
-    
-    var isVirtual = (items.getAttribute("virtual") == '1');
-    var autoscanType = items.getAttribute("autoscan_type");
-    var autoscanMode = items.getAttribute("autoscan_mode");
-    var path = items.getAttribute("location");
-    var loadItemId = (useFiles ? 'f' : 'd') + ofId;
-    var totalMatches = parseInt(items.getAttribute("total_matches"));
-    var isProtected = (items.getAttribute("protect_container") == '1');
-    var itemsProtected = (items.getAttribute("protect_items") == '1');
-    var totalPages = Math.ceil(totalMatches / viewItems);
-    var start = parseInt(items.getAttribute("start"));
-    var thisPage = Math.abs(start / viewItems);
-    var nextPageStart = (thisPage + 1) * viewItems;
-    var prevPageStart = (thisPage - 1) * viewItems;
-    var showPaging = (! useFiles && totalMatches > viewItemsMin);
-    var showPagingPages = (totalPages > 1);
-    if (showPaging)
-    {
-        if (showPagingPages)
-        {
-            var pagesFrom;
-            var pagesTo
-            if (thisPage <= showAddPages + 1)
-            {
-                pagesFrom = 0;
-                pagesTo = showAddPages * 2 + 1;
-            }
-            else if (thisPage < totalPages - showAddPages - 1)
-            {
-                pagesFrom = thisPage - showAddPages;
-                pagesTo = thisPage + showAddPages;
-            }
-            else
-            {
-                pagesFrom = totalPages - showAddPages * 2 - 2;
-                pagesTo = totalPages - 1;
+        
+        var isVirtual = ($items.attr('virtual') === '1');
+        var autoscanType = $items.attr('autoscan_type');
+        var autoscanMode = $items.attr('autoscan_mode');
+        var path = $items.attr('location');
+        var loadItemId = (useFiles ? 'f' : 'd') + ofId;
+        var totalMatches = parseInt($items.attr('total_matches'));
+        var isProtected = ($items.attr('protect_container') === '1');
+        var itemsProtected = ($items.attr('protect_items') === '1');
+        var totalPages = Math.ceil(totalMatches / viewItems);
+        var start = parseInt($items.attr('start'));
+        var thisPage = Math.abs(start / viewItems);
+        var nextPageStart = (thisPage + 1) * viewItems;
+        var prevPageStart = (thisPage - 1) * viewItems;
+        var showPaging = (! useFiles && totalMatches > viewItemsMin);
+        var showPagingPages = (totalPages > 1);
+        if (showPaging) {
+            if (showPagingPages) {
+                var pagesFrom;
+                var pagesTo
+                if (thisPage <= showAddPages + 1) {
+                    pagesFrom = 0;
+                    pagesTo = showAddPages * 2 + 1;
+                } else if (thisPage < totalPages - showAddPages - 1) {
+                    pagesFrom = thisPage - showAddPages;
+                    pagesTo = thisPage + showAddPages;
+                } else {
+                    pagesFrom = totalPages - showAddPages * 2 - 2;
+                    pagesTo = totalPages - 1;
+                }
+                
+                if (pagesFrom == 2)
+                    pagesFrom--;
+                if (pagesFrom < 0)
+                    pagesFrom = 0;
+                if (pagesTo == totalPages - 3)
+                    pagesTo++;
+                
+                if (pagesTo >= totalPages)
+                    pagesTo = totalPages - 1;
             }
             
-            if (pagesFrom == 2)
-                pagesFrom--;
-            if (pagesFrom < 0)
-                pagesFrom = 0;
-            if (pagesTo == totalPages - 3)
-                pagesTo++;
-            
-            if (pagesTo >= totalPages)
-                pagesTo = totalPages - 1;
-        }
-        
-        var pagingTab1 = rightDocument.createElement("table");
-        pagingTab1.setAttribute("align", "center");
-        var pagingTbody1 = rightDocument.createElement("tbody");
-        var pagingRow = rightDocument.createElement("tr");
-        var pagingCellLeft = rightDocument.createElement("td");
-        pagingCellLeft.setAttribute("align", "right");
-        var pagingCellCenter = rightDocument.createElement("td");
-        pagingCellCenter.setAttribute("align", "center");
-        var pagingCellRight = rightDocument.createElement("td");
-        pagingCellRight.setAttribute("align", "left");
-        pagingTab1.appendChild(pagingTbody1);
-        pagingTbody1.appendChild(pagingRow);
-        pagingRow.appendChild(pagingCellLeft);
-        pagingRow.appendChild(pagingCellCenter);
-        pagingRow.appendChild(pagingCellRight);
-        
-        var first = true;
-        
-        /*
-        if (thisPage > showMaxPages / 2)
-            first = _addLink(pagingPar, first, "javascript:parent.loadItems('"+loadItemId+"','0');", "first", iconFirst, " ");
-        */
-        
-        if (prevPageStart >= 0)
-        {
-            _addLink(rightDocument, pagingCellLeft, false, "javascript:parent.loadItems('"+loadItemId+"','0');", "first", iconFirst, " ");
-            _addLink(rightDocument, pagingCellLeft, false, "javascript:parent.loadItems('"+loadItemId+"','"+prevPageStart+"');", "previous", iconPrevious, " ");
-        }
-        else
-        {
-            appendImgNode(rightDocument, pagingCellLeft, "", iconArrowReplacement);
-            appendImgNode(rightDocument, pagingCellLeft, "", iconArrowReplacement);
-        }
-        
-        if (nextPageStart < totalMatches)
-        {
-            _addLink(rightDocument, pagingCellRight, false, "javascript:parent.loadItems('"+loadItemId+"','"+nextPageStart+"');", "next", iconNext, " ");
-            _addLink(rightDocument, pagingCellRight, false, "javascript:parent.loadItems('"+loadItemId+"','"+((totalPages - 1) * viewItems)+"');", "last", iconLast, " ");
-        }
-        else
-        {
-            appendImgNode(rightDocument, pagingCellRight, "", iconArrowReplacement);
-            appendImgNode(rightDocument, pagingCellRight, "", iconArrowReplacement);
-        }
-        
-        if (showPagingPages)
-        {
-            var pagingTab2 = rightDocument.createElement("table");
-            pagingTab2.setAttribute("align", "center");
-            var pagingTbody2 = rightDocument.createElement("tbody");
-            pagingTab2.appendChild(pagingTbody2);
-            var pagingPagesRow = rightDocument.createElement("tr");
-            var pagingPagesCell = rightDocument.createElement("td");
-            pagingPagesCell.setAttribute("align", "center");
-            pagingPagesCell.setAttribute("colspan", "3");
-            pagingTbody2.appendChild(pagingPagesRow);
-            pagingPagesRow.appendChild(pagingPagesCell);
+            var pagingTab1 = rightDocument.createElement("table");
+            pagingTab1.setAttribute("align", "center");
+            var pagingTbody1 = rightDocument.createElement("tbody");
+            var pagingRow = rightDocument.createElement("tr");
+            var pagingCellLeft = rightDocument.createElement("td");
+            pagingCellLeft.setAttribute("align", "right");
+            var pagingCellCenter = rightDocument.createElement("td");
+            pagingCellCenter.setAttribute("align", "center");
+            var pagingCellRight = rightDocument.createElement("td");
+            pagingCellRight.setAttribute("align", "left");
+            pagingTab1.appendChild(pagingTbody1);
+            pagingTbody1.appendChild(pagingRow);
+            pagingRow.appendChild(pagingCellLeft);
+            pagingRow.appendChild(pagingCellCenter);
+            pagingRow.appendChild(pagingCellRight);
             
             var first = true;
             
-            if (pagesFrom > 0)
+            if (prevPageStart >= 0)
             {
-                first = false;
-                var pagingLink = rightDocument.createElement("a");
-                pagingLink.setAttribute("href", "javascript:parent.loadItems('"+loadItemId+"','0');");
-                pagingLink.appendChild(rightDocument.createTextNode(1));
-                pagingPagesCell.appendChild(pagingLink);
-                if (pagesFrom > 1)
-                    pagingPagesCell.appendChild(rightDocument.createTextNode(" ..."));
+                _addLink(rightDocument, pagingCellLeft, false, "javascript:parent.loadItems('"+loadItemId+"','0');", "first", iconFirst, " ");
+                _addLink(rightDocument, pagingCellLeft, false, "javascript:parent.loadItems('"+loadItemId+"','"+prevPageStart+"');", "previous", iconPrevious, " ");
+            }
+            else
+            {
+                appendImgNode(rightDocument, pagingCellLeft, "", iconArrowReplacement);
+                appendImgNode(rightDocument, pagingCellLeft, "", iconArrowReplacement);
             }
             
-            for (var i = pagesFrom; i <= pagesTo; i++)
+            if (nextPageStart < totalMatches)
             {
-                if (first)
+                _addLink(rightDocument, pagingCellRight, false, "javascript:parent.loadItems('"+loadItemId+"','"+nextPageStart+"');", "next", iconNext, " ");
+                _addLink(rightDocument, pagingCellRight, false, "javascript:parent.loadItems('"+loadItemId+"','"+((totalPages - 1) * viewItems)+"');", "last", iconLast, " ");
+            }
+            else
+            {
+                appendImgNode(rightDocument, pagingCellRight, "", iconArrowReplacement);
+                appendImgNode(rightDocument, pagingCellRight, "", iconArrowReplacement);
+            }
+            
+            if (showPagingPages)
+            {
+                var pagingTab2 = rightDocument.createElement("table");
+                pagingTab2.setAttribute("align", "center");
+                var pagingTbody2 = rightDocument.createElement("tbody");
+                pagingTab2.appendChild(pagingTbody2);
+                var pagingPagesRow = rightDocument.createElement("tr");
+                var pagingPagesCell = rightDocument.createElement("td");
+                pagingPagesCell.setAttribute("align", "center");
+                pagingPagesCell.setAttribute("colspan", "3");
+                pagingTbody2.appendChild(pagingPagesRow);
+                pagingPagesRow.appendChild(pagingPagesCell);
+                
+                var first = true;
+                
+                if (pagesFrom > 0)
+                {
                     first = false;
-                else
-                    pagingPagesCell.appendChild(rightDocument.createTextNode(" "));
-                
-                var pagingLink;
-                
-                if (i == thisPage)
-                {
-                    pagingLink = rightDocument.createElement("strong");
+                    var pagingLink = rightDocument.createElement("a");
+                    pagingLink.setAttribute("href", "javascript:parent.loadItems('"+loadItemId+"','0');");
+                    pagingLink.appendChild(rightDocument.createTextNode(1));
+                    pagingPagesCell.appendChild(pagingLink);
+                    if (pagesFrom > 1)
+                        pagingPagesCell.appendChild(rightDocument.createTextNode(" ..."));
                 }
-                else
+                
+                for (var i = pagesFrom; i <= pagesTo; i++)
                 {
-                    pagingLink = rightDocument.createElement("a");
-                    pagingLink.setAttribute("href", "javascript:parent.loadItems('"+loadItemId+"','"+(i * viewItems)+"');");
+                    if (first)
+                        first = false;
+                    else
+                        pagingPagesCell.appendChild(rightDocument.createTextNode(" "));
+                    
+                    var pagingLink;
+                    
+                    if (i == thisPage)
+                    {
+                        pagingLink = rightDocument.createElement("strong");
+                    }
+                    else
+                    {
+                        pagingLink = rightDocument.createElement("a");
+                        pagingLink.setAttribute("href", "javascript:parent.loadItems('"+loadItemId+"','"+(i * viewItems)+"');");
+                    }
+                    pagingLink.appendChild(rightDocument.createTextNode( i + 1));
+                    pagingPagesCell.appendChild(pagingLink);
                 }
-                pagingLink.appendChild(rightDocument.createTextNode( i + 1));
-                pagingPagesCell.appendChild(pagingLink);
+                
+                if (pagesTo < totalPages - 1)
+                {
+                    var pagingLink = rightDocument.createElement("a");
+                    pagingLink.setAttribute("href", "javascript:parent.loadItems('"+loadItemId+"','"+((totalPages - 1) * viewItems)+"');");
+                    pagingLink.appendChild(rightDocument.createTextNode(totalPages));
+                    if (pagesTo < totalPages - 2)
+                        pagingPagesCell.appendChild(rightDocument.createTextNode(" ... "));
+                    else
+                        pagingPagesCell.appendChild(rightDocument.createTextNode(" "));
+                    pagingPagesCell.appendChild(pagingLink);
+                    
+                }
             }
             
-            if (pagesTo < totalPages - 1)
-            {
-                var pagingLink = rightDocument.createElement("a");
-                pagingLink.setAttribute("href", "javascript:parent.loadItems('"+loadItemId+"','"+((totalPages - 1) * viewItems)+"');");
-                pagingLink.appendChild(rightDocument.createTextNode(totalPages));
-                if (pagesTo < totalPages - 2)
-                    pagingPagesCell.appendChild(rightDocument.createTextNode(" ... "));
-                else
-                    pagingPagesCell.appendChild(rightDocument.createTextNode(" "));
-                pagingPagesCell.appendChild(pagingLink);
-                
-            }
         }
         
-        /*
-        if (thisPage < totalPages - showMaxPages / 2)
-            first = _addLink(pagingPagesCell, first, "javascript:parent.loadItems('"+loadItemId+"','"+((totalPages - 1) * viewItems)+"');", "last", iconLast, " ");
-        */
-    }
-    
-    var children = items.getElementsByTagName(childrenTag);
-    var itemsEl = rightDocument.createElement("div");
-    var topItemsEl = topRightDocument.createElement("div");
-    itemsEl.setAttribute("class", "itemsEl");
-    
-    var topTopDiv  = topRightDocument.createElement("div");
-    topTopDiv.setAttribute("class", "topDiv");
-    topItemsEl.appendChild(topTopDiv);
-    
-    var contTable = topRightDocument.createElement("table");
-    contTable.setAttribute("width", "100%");
-    contTable.setAttribute("class", "contTable");
-    var contTableBody = topRightDocument.createElement("tbody");
-    contTable.appendChild(contTableBody);
-    topTopDiv.appendChild(contTable);
-    var contRow = topRightDocument.createElement("tr");
-    contTableBody.appendChild(contRow);
-    
-    var leftDiv = topRightDocument.createElement("td");
-    leftDiv.setAttribute("class", "contEntry");
-    leftDiv.setAttribute("valign", "middle");
-    
-    var contIcon = topRightDocument.createElement("img");
-    leftDiv.appendChild(contIcon);
-    //contIcon.setAttribute("style", "vertical-align:middle;");
-    
-    var pathEl = topRightDocument.createElement("span");
-    pathEl.setAttribute("class", "contText");
-    //pathEl.setAttribute("style", "vertical-align:middle;");
-    leftDiv.appendChild(pathEl);
-    
-    var buttons = topRightDocument.createElement("td");
-    buttons.setAttribute("class", "itemButtons");
-    buttons.setAttribute("align", "right");
-    
-    contRow.appendChild(leftDiv);
-    contRow.appendChild(buttons);
-    
-    if (useFiles)
-    {
-        contIcon.setAttribute("src", iconContainer.src);
-        contIcon.setAttribute("alt", "directory:");
-        contIcon.setAttribute("width", iconContainer.width);
-        contIcon.setAttribute("height", iconContainer.height);
+        var children = $items.find(childrenTag);
+        var itemsEl = rightDocument.createElement("div");
+        var topItemsEl = topRightDocument.createElement("div");
+        itemsEl.setAttribute("class", "itemsEl");
         
-        pathEl.appendChild(topRightDocument.createTextNode(" /Filesystem" + path + (path.charAt(path.length - 1) != '/' ? '/' : '')));
+        var topTopDiv  = topRightDocument.createElement("div");
+        topTopDiv.setAttribute("class", "topDiv");
+        topItemsEl.appendChild(topTopDiv);
         
-        var first = true
-        first = _addLink(topRightDocument, buttons, first, "javascript:parent.addItem('"+ofId+"');", "add", iconAdd);
-        first = _addLink(topRightDocument, buttons, first, "javascript:parent.editLoadAutoscanDirectory('"+ofId+"', true);", "add as autoscan dir", iconAddAutoscan);
-    }
-    else
-    {
-        var iconSrc = iconContainer;
-        if (autoscanType == 'ui')
-        {
-            if (autoscanMode == 'inotify')
-                iconSrc = iconContainerAutoscanInotify;
-            else
-                iconSrc = iconContainerAutoscanTimed;
-        }
+        var contTable = topRightDocument.createElement("table");
+        contTable.setAttribute("width", "100%");
+        contTable.setAttribute("class", "contTable");
+        var contTableBody = topRightDocument.createElement("tbody");
+        contTable.appendChild(contTableBody);
+        topTopDiv.appendChild(contTable);
+        var contRow = topRightDocument.createElement("tr");
+        contTableBody.appendChild(contRow);
         
-        if (autoscanType == 'persistent')
-        {
-            if (autoscanMode == 'inotify')
-                iconSrc = iconContainerAutoscanInotifyConfig;
-            else
-                iconSrc = iconContainerAutoscanTimedConfig;
-        }
+        var leftDiv = topRightDocument.createElement("td");
+        leftDiv.setAttribute("class", "contEntry");
+        leftDiv.setAttribute("valign", "middle");
         
-        contIcon.setAttribute("src", iconSrc.src);
-        contIcon.setAttribute("alt", "container:");
-        contIcon.setAttribute("width", iconSrc.width);
-        contIcon.setAttribute("height", iconSrc.height);
+        var contIcon = topRightDocument.createElement("img");
+        leftDiv.appendChild(contIcon);
+        //contIcon.setAttribute("style", "vertical-align:middle;");
         
-        pathEl.appendChild(topRightDocument.createTextNode(" /Database" + path + (path.charAt(path.length - 1) != '/' ? '/' : '')));
+        var pathEl = topRightDocument.createElement("span");
+        pathEl.setAttribute("class", "contText");
+        //pathEl.setAttribute("style", "vertical-align:middle;");
+        leftDiv.appendChild(pathEl);
         
-        var link;
-        var first = true;
-        var addLink = false;
-        var editLink = false;
-        var removeThisLink = false;
-        var removeAllLink = false;
-        var autoscanLink = false;
+        var buttons = topRightDocument.createElement("td");
+        buttons.setAttribute("class", "itemButtons");
+        buttons.setAttribute("align", "right");
         
-        if (lastNodeDb == 'd0')
-        {
-            addLink = true;
-        }
-        else if (lastNodeDb == 'd1')
-        {
-            editLink = true;
-            autoscanLink = true;
-        }
-        else
-        {
-            if (isVirtual)
-            {
-                addLink = true;
-                editLink = true;
-                if (! isProtected)
-                {
-                    removeThisLink = true;
-                    removeAllLink = true;
-                }
-            }
-            else
-            if (! isProtected)
-            {
-                removeThisLink = true;
-                autoscanLink = true;
-            }
-        }
-        
-        if (autoscanType != 'none')
-            autoscanLink = true;
-        
-        if (addLink)
-            first = _addLink(topRightDocument, buttons, first, "javascript:parent.userAddItemStart();", "add Item", iconNewItem);
-        if (editLink)
-            first = _addLink(topRightDocument, buttons, first, "javascript:parent.userEditItemStart('"+ofId+"');", "edit", iconEdit);
-        if (removeThisLink)
-            first = _addLink(topRightDocument, buttons, first, "javascript:parent.removeItem('"+ofId+"', false);", "remove", iconRemoveThis);
-        if (removeAllLink)
-            first = _addLink(topRightDocument, buttons, first, "javascript:parent.removeItem('"+ofId+"', true);", "remove all", iconRemoveAll);
-        if (autoscanLink)
-            first = _addLink(topRightDocument, buttons, first,  "javascript:parent.editLoadAutoscanDirectory('"+ofId+"', false);", "change autoscan dir", iconEditAutoscan);
-    }
-    
-    if (showPaging)
-    {
-        var pagingForm = rightDocument.createElement("form");
-        pagingForm.setAttribute("name", "itemsPerPageForm1");
-        var pagingSelect = rightDocument.createElement("select");
-        pagingForm.appendChild(pagingSelect);
-        pagingSelect.setAttribute("size", "1");
-        pagingSelect.setAttribute("onchange", "parent.changeItemsPerPage(1)");
-        pagingSelect.setAttribute("name", "itemsPerPage1");
-        
-        // deactivated for MSIE for now..
-        if (! isMSIE)
-            pagingCellCenter.appendChild(pagingForm);
-        
-        itemsEl.appendChild(pagingTab1.cloneNode(true));
-        if (showPagingPages)
-            itemsEl.appendChild(pagingTab2.cloneNode(true));
-        
-        pagingForm.setAttribute("name", "itemsPerPageForm2");
-        pagingSelect.setAttribute("onchange", "parent.changeItemsPerPage(2)");
-        pagingSelect.setAttribute("name", "itemsPerPage2");
-    }
-    
-    var itemsTable = rightDocument.createElement("table");
-    itemsTable.setAttribute("width", "100%");
-    itemsTable.setAttribute("cellspacing", "0");
-    var itemsTableBody = rightDocument.createElement("tbody");
-    itemsTable.appendChild(itemsTableBody);
-    itemsEl.appendChild(itemsTable);
-    for (var i = 0; i < children.length; i++)
-    {
-        var itemRow = rightDocument.createElement("tr");
-        itemRow.setAttribute("class", (i % 2 == 0 ? "itemRowA" : "itemRowB"));
-        var item = children[i];
-        var itemEntryTd = rightDocument.createElement("td");
-        itemEntryTd.setAttribute("class", "itemEntry");
-        var itemEntry;
-        if (isMSIE)
-        {
-            itemEntry = rightDocument.createElement("div"); // another div only for IE...
-            itemEntry.setAttribute("class", "itemLeft");
-            itemEntryTd.appendChild(itemEntry);
-        }
-        else
-        {
-            itemEntry = itemEntryTd;
-        }
-        var itemLink = rightDocument.createElement("a");
-        itemEntry.appendChild(itemLink);
-        
-        var itemButtonsTd = rightDocument.createElement("td");
-        itemButtonsTd.setAttribute("class", "itemButtons");
-        itemButtonsTd.setAttribute("align", "right");
-        var itemButtons;
-        if (isMSIE)
-        {
-            itemButtons = rightDocument.createElement("div"); // another div only for IE...
-            itemButtons.setAttribute("class", "itemRight");
-            itemButtonsTd.appendChild(itemButtons);
-        }
-        else
-        {
-            itemButtons = itemButtonsTd;
-        }
-        
-        var itemText = rightDocument.createTextNode(useFiles ? item.firstChild.nodeValue : xmlGetElementText(item, "title"));
-        itemLink.appendChild(itemText);
-        
-        itemRow.appendChild(itemEntryTd);
-        itemRow.appendChild(itemButtonsTd);
+        contRow.appendChild(leftDiv);
+        contRow.appendChild(buttons);
         
         if (useFiles)
         {
-            //itemEntry.appendChild(rightDocument.createTextNode(" - "));
+            contIcon.setAttribute("src", iconContainer.src);
+            contIcon.setAttribute("alt", "directory:");
+            contIcon.setAttribute("width", iconContainer.width);
+            contIcon.setAttribute("height", iconContainer.height);
             
-            _addLink(rightDocument, itemButtons, true, "javascript:parent.addItem(\""+item.getAttribute("id")+"\");", "add", iconAdd);
+            pathEl.appendChild(topRightDocument.createTextNode(" /Filesystem" + path + (path.charAt(path.length - 1) != '/' ? '/' : '')));
+            
+            var first = true
+            first = _addLink(topRightDocument, buttons, first, "javascript:parent.addItem('"+ofId+"');", "add", iconAdd);
+            first = _addLink(topRightDocument, buttons, first, "javascript:parent.editLoadAutoscanDirectory('"+ofId+"', true);", "add as autoscan dir", iconAddAutoscan);
         }
         else
         {
-            //itemEntry.appendChild(rightDocument.createTextNode(" - "));
-            
-            if (! itemsProtected)
+            var iconSrc = iconContainer;
+            if (autoscanType == 'ui')
             {
-                _addLink(rightDocument, itemButtons, true, "javascript:parent.removeItem(\""+item.getAttribute("id")+"\", false);", "remove this", iconRemoveThis);
+                if (autoscanMode == 'inotify')
+                    iconSrc = iconContainerAutoscanInotify;
+                else
+                    iconSrc = iconContainerAutoscanTimed;
+            }
+            
+            if (autoscanType == 'persistent')
+            {
+                if (autoscanMode == 'inotify')
+                    iconSrc = iconContainerAutoscanInotifyConfig;
+                else
+                    iconSrc = iconContainerAutoscanTimedConfig;
+            }
+            
+            contIcon.setAttribute("src", iconSrc.src);
+            contIcon.setAttribute("alt", "container:");
+            contIcon.setAttribute("width", iconSrc.width);
+            contIcon.setAttribute("height", iconSrc.height);
+            
+            pathEl.appendChild(topRightDocument.createTextNode(" /Database" + path + (path.charAt(path.length - 1) != '/' ? '/' : '')));
+            
+            var link;
+            var first = true;
+            var addLink = false;
+            var editLink = false;
+            var removeThisLink = false;
+            var removeAllLink = false;
+            var autoscanLink = false;
+            
+            if (lastNodeDb == 'd0')
+            {
+                addLink = true;
+            }
+            else if (lastNodeDb == 'd1')
+            {
+                editLink = true;
+                autoscanLink = true;
+            }
+            else
+            {
                 if (isVirtual)
                 {
-                    _addLink(rightDocument, itemButtons, false, "javascript:parent.removeItem(\""+item.getAttribute("id")+"\", true);", "remove all", iconRemoveAll);
+                    addLink = true;
+                    editLink = true;
+                    if (! isProtected)
+                    {
+                        removeThisLink = true;
+                        removeAllLink = true;
+                    }
+                }
+                else
+                if (! isProtected)
+                {
+                    removeThisLink = true;
+                    autoscanLink = true;
                 }
             }
             
-            _addLink(rightDocument, itemButtons, false, "javascript:parent.userEditItemStart('"+item.getAttribute("id")+"');", "edit", iconEdit);
+            if (autoscanType != 'none')
+                autoscanLink = true;
             
-            itemLink.setAttribute("href", xmlGetElementText(item, "res"));
-            
-            // the target is needed, because otherwise we probably mess up one of
-            // our frames
-            itemLink.setAttribute("target", "mediatomb_target");
+            if (addLink)
+                first = _addLink(topRightDocument, buttons, first, "javascript:parent.userAddItemStart();", "add Item", iconNewItem);
+            if (editLink)
+                first = _addLink(topRightDocument, buttons, first, "javascript:parent.userEditItemStart('"+ofId+"');", "edit", iconEdit);
+            if (removeThisLink)
+                first = _addLink(topRightDocument, buttons, first, "javascript:parent.removeItem('"+ofId+"', false);", "remove", iconRemoveThis);
+            if (removeAllLink)
+                first = _addLink(topRightDocument, buttons, first, "javascript:parent.removeItem('"+ofId+"', true);", "remove all", iconRemoveAll);
+            if (autoscanLink)
+                first = _addLink(topRightDocument, buttons, first,  "javascript:parent.editLoadAutoscanDirectory('"+ofId+"', false);", "change autoscan dir", iconEditAutoscan);
         }
-        itemsTableBody.appendChild(itemRow);
-    }
-    
-    if (showPaging)
-    {
-        if (showPagingPages)
-            itemsEl.appendChild(pagingTab2);
-        itemsEl.appendChild(pagingTab1);
-    }
-    
-    //itemsEl.appendChild(rightDocument.createTextNode("total: "+totalMatches));
-    
-    if (useFiles)
-        fsItemRoot.replaceChild(itemsEl, fsItemRoot.firstChild);
-    else
-        dbItemRoot.replaceChild(itemsEl, dbItemRoot.firstChild);
-    topItemRoot.replaceChild(topItemsEl, topItemRoot.firstChild);
-    
-    /* partly works with IE...
-    for (var i = 0; i < rightDocument.forms.length; i++)
-    {
-        var form = rightDocument.forms[i];
-        if (form.name == 'itemsPerPageForm1')
-            _addItemsPerPage(form.elements, 1);
-        if (form.name == 'itemsPerPageForm2')
-            _addItemsPerPage(form.elements, 2);
-    }
-    */
-    
-    if (showPaging)
-    {
-        // deactivated for MSIE for now...
-        if (! isMSIE)
+        
+        if (showPaging)
         {
+            var pagingForm = rightDocument.createElement("form");
+            pagingForm.setAttribute("name", "itemsPerPageForm1");
+            var pagingSelect = rightDocument.createElement("select");
+            pagingForm.appendChild(pagingSelect);
+            pagingSelect.setAttribute("size", "1");
+            pagingSelect.setAttribute("onchange", "parent.changeItemsPerPage(1)");
+            pagingSelect.setAttribute("name", "itemsPerPage1");
+            
+            pagingCellCenter.appendChild(pagingForm);
+            
+            itemsEl.appendChild(pagingTab1.cloneNode(true));
+            if (showPagingPages)
+                itemsEl.appendChild(pagingTab2.cloneNode(true));
+            
+            pagingForm.setAttribute("name", "itemsPerPageForm2");
+            pagingSelect.setAttribute("onchange", "parent.changeItemsPerPage(2)");
+            pagingSelect.setAttribute("name", "itemsPerPage2");
+        }
+        
+        var itemsTable = rightDocument.createElement("table");
+        itemsTable.setAttribute("width", "100%");
+        itemsTable.setAttribute("cellspacing", "0");
+        var itemsTableBody = rightDocument.createElement("tbody");
+        itemsTable.appendChild(itemsTableBody);
+        itemsEl.appendChild(itemsTable);
+        for (var i = 0; i < children.length; i++) {
+            var itemRow = rightDocument.createElement("tr");
+            itemRow.setAttribute("class", (i % 2 == 0 ? "itemRowA" : "itemRowB"));
+            var item = children[i];
+            var itemEntryTd = rightDocument.createElement("td");
+            itemEntryTd.setAttribute("class", "itemEntry");
+            var itemEntry;
+            itemEntry = itemEntryTd;
+            var itemLink = rightDocument.createElement("a");
+            itemEntry.appendChild(itemLink);
+            
+            var itemButtonsTd = rightDocument.createElement("td");
+            itemButtonsTd.setAttribute("class", "itemButtons");
+            itemButtonsTd.setAttribute("align", "right");
+            var itemButtons;
+            itemButtons = itemButtonsTd;
+            
+            var itemText = rightDocument.createTextNode(useFiles ? item.firstChild.nodeValue : xmlGetElementText(item, "title"));
+            itemLink.appendChild(itemText);
+            
+            itemRow.appendChild(itemEntryTd);
+            itemRow.appendChild(itemButtonsTd);
+            
+            if (useFiles)
+            {
+                //itemEntry.appendChild(rightDocument.createTextNode(" - "));
+                
+                _addLink(rightDocument, itemButtons, true, "javascript:parent.addItem(\""+item.getAttribute("id")+"\");", "add", iconAdd);
+            }
+            else
+            {
+                //itemEntry.appendChild(rightDocument.createTextNode(" - "));
+                
+                if (! itemsProtected)
+                {
+                    _addLink(rightDocument, itemButtons, true, "javascript:parent.removeItem(\""+item.getAttribute("id")+"\", false);", "remove this", iconRemoveThis);
+                    if (isVirtual)
+                    {
+                        _addLink(rightDocument, itemButtons, false, "javascript:parent.removeItem(\""+item.getAttribute("id")+"\", true);", "remove all", iconRemoveAll);
+                    }
+                }
+                
+                _addLink(rightDocument, itemButtons, false, "javascript:parent.userEditItemStart('"+item.getAttribute("id")+"');", "edit", iconEdit);
+                
+                itemLink.setAttribute("href", xmlGetElementText(item, "res"));
+                
+                // the target is needed, because otherwise we probably mess up one of
+                // our frames
+                itemLink.setAttribute("target", "mediatomb_target");
+            }
+            itemsTableBody.appendChild(itemRow);
+        }
+        
+        if (showPaging)
+        {
+            if (showPagingPages)
+                itemsEl.appendChild(pagingTab2);
+            itemsEl.appendChild(pagingTab1);
+        }
+        
+        if (useFiles) {
+            jQuery(fsItemRoot).children(':first').replaceWith(itemsEl);
+            jQuery(dbItemRoot).hide();
+            jQuery(fsItemRoot).show();
+        } else {
+            jQuery(dbItemRoot).children(':first').replaceWith(itemsEl);
+            jQuery(fsItemRoot).hide();
+            jQuery(dbItemRoot).show();
+        }
+        jQuery(topItemRoot).children(':first').replaceWith(topItemsEl);
+        
+       
+        if (showPaging) {
             _addItemsPerPage(rightDocument.forms['itemsPerPageForm1'].elements['itemsPerPage1']);
             _addItemsPerPage(rightDocument.forms['itemsPerPageForm2'].elements['itemsPerPage2']);
         }
     }
 }
-
-function _addItemsPerPage(itemsPerPageEl) //IE itemsPerPageFormElements, formId)
-{
-    /* partly works with IE...
-    var itemsPerPageEl;
-    for (var i = 0; i < itemsPerPageFormElements.length; i ++)
-    {
-        if (itemsPerPageFormElements[i].name == 'itemsPerPage'+formId)
-            itemsPerPageEl = itemsPerPageFormElements[i];
-    }
-    */
-    
-    if (itemsPerPageEl)
-    {
-        //itemsPerPageEl.onchange='parent.changeItemsPerPage('+formId+')';
+function _addItemsPerPage(itemsPerPageEl) {
+    if (itemsPerPageEl) { 
         for (var i = 0; i < itemOptions.length; i ++)
         {
             var itemCount = itemOptions[i];
@@ -3217,16 +3141,7 @@ function showAutoscanCallback(ajaxRequest)
         itemEntryTd.setAttribute("class", "itemEntry");
         
         var itemEntry;
-        if (isMSIE)
-        {
-            itemEntry = rightDocument.createElement("div"); // another div only for IE...
-            itemEntry.setAttribute("class", "itemLeft");
-            itemEntryTd.appendChild(itemEntry);
-        }
-        else
-        {
-            itemEntry = itemEntryTd;
-        }
+        itemEntry = itemEntryTd;
         var autoscanXMLel = autoscans[i];
         
         var autoscanMode = xmlGetElementText(autoscanXMLel, "scan_mode");
@@ -3246,16 +3161,7 @@ function showAutoscanCallback(ajaxRequest)
         itemButtonsTd.setAttribute("class", "itemButtons");
         itemButtonsTd.setAttribute("align", "right");
         var itemButtons;
-        if (isMSIE)
-        {
-            itemButtons = rightDocument.createElement("div"); // another div only for IE...
-            itemButtons.setAttribute("class", "itemRight");
-            itemButtonsTd.appendChild(itemButtons);
-        }
-        else
-        {
-            itemButtons = itemButtonsTd;
-        }
+        itemButtons = itemButtonsTd;
         
         itemRow.appendChild(itemEntryTd);
         itemRow.appendChild(itemButtonsTd);
@@ -3589,20 +3495,18 @@ function init() {
     var rightDocument = frames["rightF"].document;
     var leftDocument = frames["leftF"].document;
     
-    if (!SID || SID == null || ! LOGGED_IN)
-    {
-        Element.show(rightDocument.getElementById("loginDiv"));
-        Element.show(leftDocument.getElementById("leftLoginDiv"));
-    }
-    else
-    {
+    if (!SID || SID === null || !LOGGED_IN) {
+        jQuery('#loginDiv', rightDocument).show();
+        jQuery('#leftLoginDiv', leftDocument).show();
+    } else {
         loggedIn = true;
-        Element.show(topDocument.getElementById("topDiv"));
-        Element.show(leftDocument.getElementById("treeDiv"));
+        jQuery('#topDiv', topDocument).show();
+        jQuery('#treeDiv', leftDocument).show();
         jQuery('#context_switcher', frames['topleftF'].document).show();
-        Element.show(topDocument.getElementById("statusDiv"));
-        if (ACCOUNTS)
-            Element.show(topDocument.getElementById("logout_link"));
+        jQuery('#statusDiv', topDocument).show();
+        if (ACCOUNTS) {
+            jQuery('#logout_link', topDocument).show();
+        }
     }
     var globalAjaxHandlers = {
         onCreate: function()
@@ -3620,9 +3524,9 @@ function init() {
             }
         },
         
-        onException: function()
+        onException: function(req)
         {
-            alert("MediaTomb cannot be reached! Please check if the server is still running.");
+            console.log("MediaTomb cannot be reached! Please check if the server is still running.");
             clearPollInterval();
             if(Ajax.activeRequestCount < 0)
                 Ajax.activeRequestCount = 0;
