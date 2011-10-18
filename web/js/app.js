@@ -2048,7 +2048,7 @@ function treeInit()
     fsStuff.tombRootNode.addOpenEventListener("openEventListener");
     fsStuff.rootNode.addChild(fsStuff.tombRootNode);
     //writeStates('f0','open');
-    treeChangeType();
+    setTreeContext('db');
     treeDocument.onkeydown = keyDown;
     treeDocument.onmousedown = mouseDownHandler;
 }
@@ -2060,47 +2060,37 @@ function updateTreeAfterLogin()
     selectLastNode();
 }
 
-function treeChangeType()
-{
-    var type = isTypeDb() ? dbStuff : fsStuff; 
+function setTreeContext(context) {
+    var type = (context === 'db') ? dbStuff : fsStuff;
     var newContainer = type.container;
-    if (container != newContainer)
-    {
-        if (container)
-        {
-            Element.hide(container);
+    if (container !== newContainer) {
+        if (container) {
+            jQuery(container).hide();
         }
         container = newContainer;
-        Element.show(container);
+        jQuery(container).show();
         rootNode = type.rootNode;
     }
-    if (!type.treeShown)
-    {
+    if (!type.treeShown) {
         readStates();
-        if (isTypeDb())
-        {
+        if (context === 'db') {
             writeStates('d0','open');
-            //refreshNode(getTreeNode('d0'));
-        }
-        else
-        {
+        } else if (context === 'fs') {
             writeStates('f0','open');
-            //refreshNode(getTreeNode('f0'));
         }
         showTree('/icons/nanotree/');
         type.treeShown = true;
     }
-    while (type.refreshQueue.length > 0)
-    {
+    while (type.refreshQueue.length > 0) {
         refreshNode(type.refreshQueue.pop());
     }
-    if (loggedIn)
-    {
+    if (loggedIn) {
         selectLastNode();
-        if (isTypeDb())
+        if (context === 'db') {
             getUpdates(true);
-        else
+        } else if (context === 'fs') {
             setStatus("no_updates");
+        }
     }
 }
 
@@ -2405,27 +2395,21 @@ function itemInit()
     topRightDocument = frames["toprightF"].document;
     dbItemRoot = rightDocument.getElementById("item_db_div");
     fsItemRoot = rightDocument.getElementById("item_fs_div");
-    itemChangeType();
+    itemChangeType('db');
     if (viewItems == -1)
         viewItems = defaultViewItems;
 }
 
-function itemChangeType()
-{
-    var oldItemRoot = itemRoot;
-    
-    itemRoot = isTypeDb() ? dbItemRoot : fsItemRoot;
-    var dummy;
-    if (oldItemRoot && oldItemRoot!=itemRoot) dummy = Element.hide(oldItemRoot);
-    dummy = Element.show(itemRoot);
-    
-    var oldTopItemRoot = topItemRoot;
-    var dbTopItemRoot = topRightDocument.getElementById("item_db_div");
-    var fsTopItemRoot = topRightDocument.getElementById("item_fs_div");
-    
-    topItemRoot = isTypeDb() ? dbTopItemRoot : fsTopItemRoot;
-    if (oldTopItemRoot && oldTopItemRoot!=topItemRoot) Element.hide(oldTopItemRoot);
-    Element.show(topItemRoot);
+
+function itemChangeType(context) {
+    var doc = frames['toprightF'].document;
+    itemRoot = (context === 'db') ? dbItemRoot : fsItemRoot; // XXX
+    topItemRoot = itemRoot; // XXX
+    if (context === 'db') {
+        jQuery('#item_db_div', doc).show();
+    } else if (context === 'db') {
+        jQuery('#item_fs_div', doc).show();
+    }
 }
 
 var lastFolder;
@@ -2449,7 +2433,6 @@ function loadItems(id, start)
     lastItemStart = start;
     lastFolder = id;
     
-    //itemChangeType();
     var type = id.substring(0, 1);
     id = id.substring(1);
     var itemLink = type == 'd' ? 'items' : 'files';
@@ -3145,7 +3128,7 @@ function updateItemAddEditFields(editItem)
 
 function itemAddEditSubmit(objectId)
 {
-    itemChangeType();
+    itemChangeType('db');
     
     var req_type;
     var args = new Object();
@@ -3223,7 +3206,7 @@ function changeItemsPerPage(formId)
 
 function cancelButtonPressed()
 {
-    itemChangeType();
+    itemChangeType('db');
 }
 /*MT*
     
@@ -3408,7 +3391,7 @@ function updateAutoscanEditFields(autoscan)
 
 function autoscanSubmit()
 {
-    itemChangeType();
+    itemChangeType('db');
     var form = rightDocument.forms['autoscanForm'];
     var args = new Object();
     args['action'] = 'as_edit_save';
@@ -3764,6 +3747,6 @@ function setUIContext(context) {
     jQuery('#type_' + context, doc).addClass('selected');
     TYPE = context;
     jQuery.cookie('TYPE', context);
-    treeChangeType();
-    itemChangeType();
+    setTreeContext(context);
+    itemChangeType(context);
 }
