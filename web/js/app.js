@@ -34,16 +34,6 @@ var INACTIVITY_TIMEOUT_SHORT = 1000;
 
 var use_inactivity_timeout_short = false;
 
-/*
-function genericCallback(ajaxRequest)
-{
-    var xml = ajaxRequest.responseXML;
-    if (! errorCheck(xml))
-        return;
-    //last_update = new Date().getTime();
-}
-*/
-
 function link(req_type, param, get_update_ids)
 {
     var url = "/content/interface?req_type="+ encodeURIComponent(req_type) +"&return_type=xml&sid="+ SID;
@@ -125,7 +115,6 @@ function errorCheck(xml, noredirect)
 {
     if (!xml)
     {
-        //alert ("could not fetch XML");
         return false;
     }
     var rootEl = xmlGetElement(xml, 'root');
@@ -205,8 +194,6 @@ function handleUIUpdates(updateIDsEl)
         var savedlastNodeDbIDParent;
         if (savedlastNodeDbID != 'd0')
             savedlastNodeDbIDParent = getTreeNode(savedlastNodeDbID).getParent().getID();
-        //alert('before: lastid: ' + savedlastNodeDbID);
-        //alert('before: node: ' + getTreeNode(savedlastNodeDbID));
         selectNodeIfVisible('d0');
         var updateAll = false;
         if (updateIDStr != 'all')
@@ -454,39 +441,8 @@ function action(action)
         url,
         {
             method: 'get'
-            //onComplete: 
         });
 }
-/*MT*
-    
-    MediaTomb - http://www.mediatomb.cc/
-    
-    icons.js - this file is part of MediaTomb.
-    
-    Copyright (C) 2005 Gena Batyan <bgeradz@mediatomb.cc>,
-                       Sergey 'Jin' Bostandzhyan <jin@mediatomb.cc>
-    
-    Copyright (C) 2006-2010 Gena Batyan <bgeradz@mediatomb.cc>,
-                            Sergey 'Jin' Bostandzhyan <jin@mediatomb.cc>,
-                            Leonhard Wimmer <leo@mediatomb.cc>
-    
-    MediaTomb is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License version 2
-    as published by the Free Software Foundation.
-    
-    MediaTomb is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-    
-    You should have received a copy of the GNU General Public License
-    version 2 along with MediaTomb; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
-    
-    $Id$
-*/
-
-/* icons for items.js */
 
 var iconPath = '/icons/';
 
@@ -496,7 +452,6 @@ var iconEdit = {src: iconPath + 'stock_edit.png', width: 30, height: 20};
 var iconRemoveThis = {src: iconPath + 'remove_this.png', width: 30, height: 20};
 var iconRemoveAll = {src: iconPath + 'remove_all.png', width: 30, height: 20};
 var iconAddAutoscan = {src: iconPath + 'add_as_autoscan.png', width: 30, height: 20};
-//var iconRemoveAutoscan = {src: iconPath + 'remove_autoscan.png', width: 30, height: 20};
 var iconEditAutoscan = {src: iconPath + 'add_as_autoscan.png', width: 30, height: 20};
 
 var iconFirst = {src: iconPath + 'go-first.png', width: 32, height: 20};
@@ -511,9 +466,6 @@ var iconContainerAutoscanTimedConfig = {src: iconPath + 'autoscan_timed_config_f
 var iconContainerAutoscanInotify = {src: iconPath + 'autoscan_inotify_folder_open.png', width: 24, height: 29};
 
 var iconContainerAutoscanInotifyConfig = {src: iconPath + 'autoscan_inotify_config_folder_open.png', width: 24, height: 29};
-// ---
-
-/* icons for tree.js */
 
 var treeImagePath = '/icons/nanotree/images/';
 var iconTreeClosed = treeImagePath + 'folder_closed.png';
@@ -783,34 +735,6 @@ function binl2b64(binarray)
   }
   return str;
 }
-/*MT*
-    
-    MediaTomb - http://www.mediatomb.cc/
-    
-    auth.js - this file is part of MediaTomb.
-    
-    Copyright (C) 2005 Gena Batyan <bgeradz@mediatomb.cc>,
-                       Sergey 'Jin' Bostandzhyan <jin@mediatomb.cc>
-    
-    Copyright (C) 2006-2010 Gena Batyan <bgeradz@mediatomb.cc>,
-                            Sergey 'Jin' Bostandzhyan <jin@mediatomb.cc>,
-                            Leonhard Wimmer <leo@mediatomb.cc>
-    
-    MediaTomb is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License version 2
-    as published by the Free Software Foundation.
-    
-    MediaTomb is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-    
-    You should have received a copy of the GNU General Public License
-    version 2 along with MediaTomb; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
-    
-    $Id$
-*/
 
 function authenticate()
 {
@@ -860,7 +784,6 @@ function checkLogin(ajaxRequest)
     var leftDocument = frames["leftF"].document;
     Element.hide(rightDocument.getElementById("loginDiv"));
     Element.hide(leftDocument.getElementById("leftLoginDiv"));
-    //Element.show(topDocument.getElementById("topDiv"));
     Element.show(topDocument.getElementById("statusDiv"));
     Element.show(frames["leftF"].document.getElementById("treeDiv"));
     jQuery('#context_switcher', frames['topleftF'].document).show();
@@ -1403,7 +1326,6 @@ function showNode(treeNode,lastNode) {
 		if (state == 'open') {
 			str += '<div id="node' + treeNode.getID() + 'sub" style="display:block;">';
 			fireOpenEvent(treeNode);
-			// alert('openevent: ' + treeNode.getName());
 		}
 		else {
 			str += '<div id="node' + treeNode.getID() + 'sub" style="display:' + (showAllNodesOnStartup == true ? 'block;' : 'none;') + ';">';
@@ -1432,18 +1354,7 @@ function showNode(treeNode,lastNode) {
 	}
 	return str;
 }
-/*
-function mouseMove() {
-	if (dragging) {
-		alert('bob');
-	}
-}
-function mouseUp() {
-	if (dragging) {
-		alert('dropped on something!');
-	}
-}
-*/
+
 function startDrag(nodeID) {
 	if (!dragable) {
 		return;
@@ -1562,7 +1473,6 @@ function dragMove() {
 }
 function editEnded() {
 	if (treeNodeEdited != null) {
-		// treeNodeEdited.getID();
 		var editTitle = treeDocument.getElementById('title' + treeNodeEdited.getID());
 		var input = editTitle.childNodes[0];
 	
@@ -1589,30 +1499,6 @@ function selectNode(nodeID) {
 
 	if (selectedNode != null && selectedNode != nodeID) {
         
-        /*
-		if (selectedNode == nodeID) {
-			if (treeNode.isEditable()) {
-				if (treeNodeEdited == treeNode) {
-					return;
-				}
-				treeNodeEdited = treeNode;
-				var editTitle = treeDocument.getElementById('title' + treeNode.getID());
-				editTitle.className = 'editednode';
-				
-
-				editTitle.innerHTML = '<input type="text" onKeypress="if (event.keyCode == 13) { this.onblur = null; editEnded(); }" name="editednode" class="editednodeinput">';
-				var input = editTitle.childNodes[0];
-				input.value = treeNode.getName();
-				input.focus();
-				input.select();
-				input.onblur = editEnded;
-			}
-			return;
-		}
-		if (treeNodeEdited != null) {
-			editEnded();
-		}
-        */
 		var oldNodeTitle = treeDocument.getElementById('title' + selectedNode);
         if (oldNodeTitle)
             oldNodeTitle.className = 'treetitle';
@@ -1833,11 +1719,6 @@ function selectNextNode() {
 					break;
 				}
 			}
-			/*
-			if (currentTreeNode.getParent().nextSibling != null) {
-				selectNode(currentTreeNode.getParent().nextSibling.getID());
-			}
-			*/
 		}
 	}
 }
@@ -1866,35 +1747,6 @@ function keyDown(event) {
     // 33: PgUp
     // 34: PgDown
 }
-/*MT*
-    
-    MediaTomb - http://www.mediatomb.cc/
-    
-    tree.js - this file is part of MediaTomb.
-    
-    Copyright (C) 2005 Gena Batyan <bgeradz@mediatomb.cc>,
-                       Sergey 'Jin' Bostandzhyan <jin@mediatomb.cc>
-    
-    Copyright (C) 2006-2010 Gena Batyan <bgeradz@mediatomb.cc>,
-                            Sergey 'Jin' Bostandzhyan <jin@mediatomb.cc>,
-                            Leonhard Wimmer <leo@mediatomb.cc>
-    
-    MediaTomb is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License version 2
-    as published by the Free Software Foundation.
-    
-    MediaTomb is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-    
-    You should have received a copy of the GNU General Public License
-    version 2 along with MediaTomb; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
-    
-    $Id$
-*/
-
 
 var iconArray = new Array(iconTreeClosed,iconTreeOpen);
 var autoscanTimedIconArray = new Array(iconTreeAutoscanTimedClosed, iconTreeAutoscanTimedOpen);
@@ -1974,13 +1826,11 @@ function treeInit()
     dbStuff.tombRootNode.setHasChildren(true);
     dbStuff.tombRootNode.addOpenEventListener("openEventListener");
     dbStuff.rootNode.addChild(dbStuff.tombRootNode);
-    //writeStates('d0','open');
     fsStuff.rootNode = new TreeNode(-2,"Filesystem", iconArray);
     fsStuff.tombRootNode = new TreeNode('f0', "Filesystem", iconArray);
     fsStuff.tombRootNode.setHasChildren(true);
     fsStuff.tombRootNode.addOpenEventListener("openEventListener");
     fsStuff.rootNode.addChild(fsStuff.tombRootNode);
-    //writeStates('f0','open');
     setTreeContext('db');
     treeDocument.onkeydown = keyDown;
     treeDocument.onmousedown = mouseDownHandler;
@@ -2124,9 +1974,6 @@ function fetchChildren(node, uiUpdate, selectIt)
     var url = link(linkType, {parent_id: id, select_it: (selectIt ? '1' : '0')});
     var async = ! uiUpdate;
     
-    //DEBUG?
-    //async = false;
-    
     var myAjax = new Ajax.Request(
         url,
         {
@@ -2138,15 +1985,6 @@ function fetchChildren(node, uiUpdate, selectIt)
 
 function updateTree(ajaxRequest)
 {
-    /*
-    var xml = fetchXML(url);
-    if (! xml)
-    {
-        alert("could not fetch XML - server not reachable?");
-        return;
-    }
-    */
-    
     var xml = ajaxRequest.responseXML;
     if (!errorCheck(xml)) return;
     
@@ -2178,8 +2016,6 @@ function updateTree(ajaxRequest)
         parNode.childrenHaveBeenFetched=false;
         parNode.resetChildren();
         fetchChildren(parNode, true, true);
-        //selectNode(parNode.getID());
-        //alert("no success!");
         return;
     }
     
@@ -2261,9 +2097,6 @@ function updateTree(ajaxRequest)
             lastNodeFs = id;
             doSelectLastNode = true;
         }
-        
-        //recurse immediately:
-        //fetchChildren(openEventListener, child);
     }
     node.childrenHaveBeenFetched = true;
     refreshOrQueueNode(node);
@@ -2271,41 +2104,9 @@ function updateTree(ajaxRequest)
         selectLastNode();
     else if (selectIt)
     {
-        //alert("selecting: " + parentId);
         selectNodeIfVisible(parentId);
-        //selectNode("d0");
-        //alert("selected! " + parentId);
     }
 }
-/*MT*
-    
-    MediaTomb - http://www.mediatomb.cc/
-    
-    items.js - this file is part of MediaTomb.
-    
-    Copyright (C) 2005 Gena Batyan <bgeradz@mediatomb.cc>,
-                       Sergey 'Jin' Bostandzhyan <jin@mediatomb.cc>
-    
-    Copyright (C) 2006-2010 Gena Batyan <bgeradz@mediatomb.cc>,
-                            Sergey 'Jin' Bostandzhyan <jin@mediatomb.cc>,
-                            Leonhard Wimmer <leo@mediatomb.cc>
-    
-    MediaTomb is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License version 2
-    as published by the Free Software Foundation.
-    
-    MediaTomb is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-    
-    You should have received a copy of the GNU General Public License
-    version 2 along with MediaTomb; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
-    
-    $Id$
-*/
-
 var itemRoot;
 var topItemRoot
 var rightDocument;
@@ -2315,7 +2116,6 @@ var dbItemRoot;
 var fsItemRoot;
 
 // will be overridden by getConfigCallback() (auth.js)
-// dann hast du nicht irgendwelche schrittlaenge und scheisse...
 var itemOptions = new Array(10, 25, 50, 100);
 var viewItemsMin = 10;
 var viewItems = -1;
@@ -2338,8 +2138,8 @@ function itemInit()
 
 function itemChangeType(context) {
     var doc = frames['toprightF'].document;
-    itemRoot = (context === 'db') ? dbItemRoot : fsItemRoot; // XXX
-    topItemRoot = (context === 'db') ? dbTopItemRoot : fsTopItemRoot; // XXX
+    itemRoot = (context === 'db') ? dbItemRoot : fsItemRoot; // XXX global
+    topItemRoot = (context === 'db') ? dbTopItemRoot : fsTopItemRoot; // XXX global
     if (context === 'db') {
         jQuery('#item_db_div', doc).show();
     } else if (context === 'db') {
@@ -2352,8 +2152,6 @@ var lastItemStart;
 
 function folderChange(id)
 {
-    //if (itemRoot != dbItemRoot && itemRoot != fsItemRoot)
-    //    return;
     if (id == lastFolder)
         loadItems(id, lastItemStart);
     else
@@ -2578,11 +2376,9 @@ function loadItems(id, start) {
         
         var contIcon = topRightDocument.createElement("img");
         leftDiv.appendChild(contIcon);
-        //contIcon.setAttribute("style", "vertical-align:middle;");
         
         var pathEl = topRightDocument.createElement("span");
         pathEl.setAttribute("class", "contText");
-        //pathEl.setAttribute("style", "vertical-align:middle;");
         leftDiv.appendChild(pathEl);
         
         var buttons = topRightDocument.createElement("td");
@@ -2735,14 +2531,10 @@ function loadItems(id, start) {
             
             if (useFiles)
             {
-                //itemEntry.appendChild(rightDocument.createTextNode(" - "));
-                
                 _addLink(rightDocument, itemButtons, true, "javascript:parent.addItem(\""+item.getAttribute("id")+"\");", "add", iconAdd);
             }
             else
             {
-                //itemEntry.appendChild(rightDocument.createTextNode(" - "));
-                
                 if (! itemsProtected)
                 {
                     _addLink(rightDocument, itemButtons, true, "javascript:parent.removeItem(\""+item.getAttribute("id")+"\", false);", "remove this", iconRemoveThis);
@@ -2805,10 +2597,6 @@ function _addItemsPerPage(itemsPerPageEl) {
 
 function _addLink(useDocument, addToElement, first, href, text, icon, seperator, target)
 {
-    /*
-    if (! first)
-        addToElement.appendChild(rightDocument.createTextNode((seperator ? seperator : ", ")));
-    */
     
     var link = useDocument.createElement("a");
     addToElement.appendChild(link);
@@ -2951,7 +2739,6 @@ function updateItemAddEditFields(editItem)
     }
     
     var itemTbody = rightDocument.createElement('tbody');
-    //itemRoot = rightDocument.getElementById("item_add_edit_inputs");
     if (fieldAr && defaultsAr)
     {
         for (var i = 0; i < fieldAr.length; ++i)
@@ -3018,7 +2805,6 @@ function itemAddEditSubmit(objectId)
 
 function addEditRemoveSubmitted(ajaxRequest)
 {
-    //alert(ajaxRequest.responseText);
     if (!errorCheck(ajaxRequest.responseXML)) return;
     
     window.setTimeout("getUpdates(true)", 800);
@@ -3035,7 +2821,6 @@ function removeItem(itemId, all)
     
     if ('d'+itemId == selectedNode)
     {
-        //alert("current selected");
         // current container will be removed, selecting parent...
         selectNode(getTreeNode(selectedNode).getParent().getID());
     }
@@ -3069,34 +2854,6 @@ function cancelButtonPressed()
 {
     itemChangeType('db');
 }
-/*MT*
-    
-    MediaTomb - http://www.mediatomb.cc/
-    
-    autoscan.js - this file is part of MediaTomb.
-    
-    Copyright (C) 2005 Gena Batyan <bgeradz@mediatomb.cc>,
-                       Sergey 'Jin' Bostandzhyan <jin@mediatomb.cc>
-    
-    Copyright (C) 2006-2010 Gena Batyan <bgeradz@mediatomb.cc>,
-                            Sergey 'Jin' Bostandzhyan <jin@mediatomb.cc>,
-                            Leonhard Wimmer <leo@mediatomb.cc>
-    
-    MediaTomb is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License version 2
-    as published by the Free Software Foundation.
-    
-    MediaTomb is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-    
-    You should have received a copy of the GNU General Public License
-    version 2 along with MediaTomb; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
-    
-    $Id$
-*/
 
 var autoscanId;
 var autoscanFromFs;
@@ -3258,11 +3015,6 @@ function autoscanSubmitCallback(ajaxRequest)
         folderChange(selectedNode);
 }
 
-function scanLevelChanged()
-{
-    
-}
-
 function scanModeChanged(filled)
 {
     var elements = rightDocument.forms['autoscanForm'].elements;
@@ -3321,48 +3073,6 @@ function scanModeChanged(filled)
             elements['interval'].disabled = true;
     }
 }
-/*MT*
-    
-    MediaTomb - http://www.mediatomb.cc/
-    
-    tasks.js - this file is part of MediaTomb.
-    
-    Copyright (C) 2005 Gena Batyan <bgeradz@mediatomb.cc>,
-                       Sergey 'Jin' Bostandzhyan <jin@mediatomb.cc>
-    
-    Copyright (C) 2006-2010 Gena Batyan <bgeradz@mediatomb.cc>,
-                            Sergey 'Jin' Bostandzhyan <jin@mediatomb.cc>,
-                            Leonhard Wimmer <leo@mediatomb.cc>
-    
-    MediaTomb is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License version 2
-    as published by the Free Software Foundation.
-    
-    MediaTomb is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-    
-    You should have received a copy of the GNU General Public License
-    version 2 along with MediaTomb; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
-    
-    $Id$
-*/
-
-/*
-function updateCurrentTask()
-{
-    var url = link('tasks', {action: 'current'}, false);
-    var myAjax = new Ajax.Request(
-        url,
-        {
-            method: 'get',
-            onComplete: updateCurrentTasksCallback
-        });
-}
-*/
-
 var currentTaskID = -1;
 
 var pollInterval;
@@ -3426,24 +3136,6 @@ function startPollInterval()
     if (! pollInterval)
         pollInterval = window.setInterval("getUpdates(false)", pollIntervalTime);
 }
-
-/*
-function updateCurrentTasksCallback(ajaxRequest)
-{
-    var xml = ajaxRequest.responseXML
-    if (! errorCheck(xml)) return;
-    var tasksXMLel = xmlGetElement(xml, "tasks");
-    if (! tasksXMLel) return;
-    var tasks = tasksXMLel.getElementsByTagName("task");
-    
-    var topDocument = frames["topF"].document;
-    var currentTaskTxtEl = topDocument.getElementById("currentTask").firstChild;
-    currentTaskTxtEl.deleteData(0, currentTaskTxtEl.length);
-    if (tasks.length <= 0)
-        return;
-    currentTaskTxtEl.insertData(0, tasks[0].firstChild.data);
-}
-*/
 
 function cancelCurrentTask()
 {
