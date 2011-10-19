@@ -253,7 +253,6 @@ function getUpdates(force) {
         var updates = force ? 'get' : 'check';
         jQuery.ajax({
             async: false,
-            return_type: 'json',
             url: '/content/interface',
             data: {
                 sid: SID,
@@ -305,15 +304,17 @@ function clearUpdateTimer()
     }
 }
 
-function action(action)
-{
+function action(action) {
     var url = link('action', {action: action});
-    
-    var myAjax = new Ajax.Request(
-        url,
-        {
-            method: 'get'
-        });
+    jQuery.ajax({
+        url: '/content/interface',
+        data: {
+            sid: SID,
+            req_type: 'action',
+            action: action
+        }
+    });
+
 }
 
 var iconPath = '/icons/';
@@ -656,45 +657,44 @@ function authenticate() {
 }
 
 function checkSID() {
-    var url = link('auth', {action: 'get_sid'});
     jQuery.ajax({
-        url: url,
         async: false,
+        data: {
+            return_type: 'json',
+            req_type: 'auth',
+            action: 'get_sid'
+        },
         success: callback
     });
-    function callback(xml) {
-        errorCheck(xml, true);
-        var rootEl = jQuery(xml).find('root');
-        var sidWasValid = jQuery(rootEl).find('sid_was_valid') === '1';
+    function callback(json) {
+        // errorCheck(xml, true);
+        var sidWasValid = json['sid_was_valid'] === '1';
         if (!sidWasValid) {
-            var newSID = jQuery(rootEl).attr('sid');
+            var newSID = json['sid'];
             if (newSID) {
                 SID = newSID;
                 jQuery.cookie("SID", SID);
             }
         }
-        LOGGED_IN = jQuery(rootEl).attr('logged_in') === '1';
+        LOGGED_IN = json['logged_in'] === '1';
     }
 }
 
-function logout()
-{
-    var url = link('auth', {action: 'logout'});
-    var myAjax = new Ajax.Request(
-        url,
-        {
-            method: 'get',
-            asynchronous: false,
-            onComplete: handleLogout
-        });
-}
-
-function handleLogout(ajaxRequest)
-{
-    errorCheck(ajaxRequest.responseXML);
-    jQuery.cookie('SID', null);
-    SID = null;
-    window.location = '/';
+function logout() {
+    jQuery.ajax({
+        async: false,
+        data: {
+            return_type: 'json',
+            req_type: 'auth',
+            action: 'logout'
+        },
+        success: function(json) {
+            // errorCheck(ajaxRequest.responseXML);
+            jQuery.cookie('SID', null);
+            SID = null;
+            window.location = '/';
+        }
+    });
 }
 
 function getConfig() {
