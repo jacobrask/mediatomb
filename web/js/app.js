@@ -40,6 +40,7 @@ var getSID = function(callback) {
                 action: 'get_sid'
             },
             success: function(json) {
+                $.cookie('sid', json['sid']);
                 return callback(json['sid']);
             }
         });
@@ -57,6 +58,27 @@ var checkLoginStatus = function(callback) {
             return callback(json['logged_in']);
         }
     });
+}
+
+// get config value from cookie or server
+var getConfig = function(key, callback) {
+    var config;
+    if ($.cookie('config') !== null) {
+        config = JSON.parse($.cookie('config'));
+        callback(config[key]);
+    } else {
+        $.ajax({
+            data: {
+                req_type: 'auth',
+                action: 'get_config'
+            },
+            success: function(json) {
+                config = json['config'];
+                $.cookie('config', JSON.stringify(config));
+                callback(config[key]);
+            }
+        });
+    }
 }
 
 // get browse context (db or fs) from cookie
@@ -79,9 +101,11 @@ var showUI = function() {
         .prependTo($('body > header'));
     $('#treeDiv').show();
     $('#context_switcher').show();
-    /*if (ACCOUNTS) {
-        $('#logout_link').show();
-    }*/
+    getConfig('accounts', function(accounts) {
+        if (accounts) {
+            $('#logout_link').show();
+        }
+    });
 }
 var showLogin = function() {
     $('#loginDiv').show();
@@ -174,7 +198,7 @@ if (cookieViewItems) {
 }
 if (TYPE!="db" && TYPE!="fs") TYPE="db";
 var rightDocument = document;
-getConfig();    
+getConfigOld();    
 
 function isTypeDb()
 {
@@ -749,7 +773,7 @@ function logout() {
     });
 }
 
-function getConfig() {
+function getConfigOld() {
     $.ajax({
         async: false,
         data: {
