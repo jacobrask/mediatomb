@@ -102,8 +102,13 @@ var showUI = function() {
     $('#treeDiv').show();
     $('#context_switcher').show();
     getConfig('accounts', function(accounts) {
+        // show logout button
         if (accounts) {
-            $('#logout_link').show();
+            $('<img src="/icons/stock_exit.png">')
+                .click(function(ev) {
+                   logout();
+                })
+                .insertAfter('#status'); 
         }
     });
 }
