@@ -249,29 +249,26 @@ function setStatus(status) {
 }
 
 function getUpdates(force) {
-    if (loggedIn)
-    {
-        var url = link('void', {updates: (force ? 'get' : 'check')});
-        var myAjax = new Ajax.Request(
-            url,
-            {
-                method: 'get',
-                asynchronous: false,
-                onComplete: getUpdatesCallback
-            });
+    if (loggedIn) {
+        var updates = force ? 'get' : 'check';
+        jQuery.ajax({
+            async: false,
+            return_type: 'json',
+            url: '/content/interface',
+            data: {
+                sid: SID,
+                req_type: 'void',
+                updates: updates
+            },
+            success: function(json) {
+                // if (! errorCheck(xml)) return;
+                last_update = new Date().getTime();
+            }
+        });
     }
 }
 
-function getUpdatesCallback(ajaxRequest)
-{
-    var xml = ajaxRequest.responseXML;
-    if (! errorCheck(xml))
-        return;
-    last_update = new Date().getTime();
-}
-
-function userActivity(event)
-{
+function userActivity(event) {
     clearUpdateTimer();
     addUpdateTimer();
     return true;
@@ -279,8 +276,7 @@ function userActivity(event)
 
 var last_update = new Date().getTime();
 
-function mouseDownHandler(event)
-{
+function mouseDownHandler(event) {
     userActivity();
     var now = new Date().getTime();
     if (last_update + 3000 < now)
