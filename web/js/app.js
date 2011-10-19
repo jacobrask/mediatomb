@@ -201,23 +201,6 @@ function handleUIUpdates($updateIDsEl) {
     }
 }
 
-function addBr(useDocument, element)
-{
-    var newBr = useDocument.createElement('br');
-    element.appendChild(newBr);
-}
-
-function getTopOffset(el)
-{
-    var offset = 0;
-    while (el != null)
-    {
-        offset += el.offsetTop;
-        el = el.offsetParent;
-    }
-    return offset;
-}
-
 function formToArray(form, args)
 {
     for (var i = 0; i < form.length; ++i)
@@ -672,9 +655,6 @@ function authenticate() {
             }
         });
     }
-}
-
-function checkLogin(ajaxRequest) {
 }
 
 function checkSID() {
