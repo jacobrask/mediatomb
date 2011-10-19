@@ -79,8 +79,8 @@ function errorCheck(xml, noredirect) {
     if (!xml) {
         return false;
     }
-    var $rootEl = jQuery(xml).find('root');
-    var $errorEl = jQuery(xml).find('error');
+    var $rootEl = $(xml).find('root');
+    var $errorEl = $(xml).find('error');
     var error = false;
     var redirect = false;
     var uiDisabled = false;
@@ -109,7 +109,7 @@ function errorCheck(xml, noredirect) {
     }
     
     if (redirect) {
-        jQuery.cookie('SID', null);
+        $.cookie('SID', null);
         if (SID && ! noredirect) {
             SID = null;
             window.location = redirect;
@@ -118,9 +118,9 @@ function errorCheck(xml, noredirect) {
     }
     
     // clears current task if no task element
-    updateCurrentTask(jQuery(xml).find('task')[0]);
+    updateCurrentTask($(xml).find('task')[0]);
     
-    var $updateIDsEl = jQuery(xml).find('update_ids');
+    var $updateIDsEl = $(xml).find('update_ids');
     if ($updateIDsEl.length > 0) {
         handleUIUpdates($updateIDsEl);
     }
@@ -218,32 +218,32 @@ var status_loading = false;
 function setStatus(status) {
     if (status == "idle" && status_loading) {
         status_loading = false;
-        jQuery('#statusWorking').hide();
+        $('#statusWorking').hide();
         if (status_updates_pending) {
-            jQuery('statusUpdatesPending').show();
+            $('statusUpdatesPending').show();
         }
         else {
-            jQuery('statusIdle').show();
+            $('statusIdle').show();
         }
     } else if (status == "loading" && ! status_loading) {
         status_loading = true;
         if (status_updates_pending) {
-            jQuery('statusUpdatesPending').hide();
+            $('statusUpdatesPending').hide();
         } else {
-            jQuery('statusIdle').hide();
+            $('statusIdle').hide();
         }
-        jQuery('#statusWorking').show();
+        $('#statusWorking').show();
     } else if (status == "updates_pending" && ! status_updates_pending) {
         status_updates_pending = true;
         if (!status_loading) {
-            jQuery('statusIdle').hide();
-            jQuery('statusUpdatesPending').show();
+            $('statusIdle').hide();
+            $('statusUpdatesPending').show();
         }
     } else if (status == "no_updates" && status_updates_pending) {
         status_updates_pending = false;
         if (!status_loading) {
-            jQuery('statusUpdatesPending').hide();
-            jQuery('statusIdle').show();
+            $('statusUpdatesPending').hide();
+            $('statusIdle').show();
         }
     }
 }
@@ -251,7 +251,7 @@ function setStatus(status) {
 function getUpdates(force) {
     if (loggedIn) {
         var updates = force ? 'get' : 'check';
-        jQuery.ajax({
+        $.ajax({
             async: false,
             url: '/content/interface',
             data: {
@@ -305,7 +305,7 @@ function clearUpdateTimer()
 }
 
 function action(action) {
-    jQuery.ajax({
+    $.ajax({
         url: '/content/interface',
         data: {
             sid: SID,
@@ -610,7 +610,7 @@ function binl2b64(binarray)
 
 function authenticate() {
     // fetch authentication token
-    jQuery.ajax({
+    $.ajax({
         data: {
             return_type: 'json',
             req_type: 'auth',
@@ -627,7 +627,7 @@ function authenticate() {
         // create authentication password
         password = hex_md5(token + password);
         // try to login
-        jQuery.ajax({
+        $.ajax({
             data: {
                 return_type: 'json',
                 req_type: 'auth',
@@ -639,13 +639,13 @@ function authenticate() {
                 // if (!errorCheck(xml)) {
                 //     return;
                 // }
-                jQuery('#loginDiv').hide();
-                jQuery('#leftLoginDiv').hide();
-                jQuery('#statusDiv').show();
-                jQuery('#treeDiv').show();
-                jQuery('#context_switcher').show();
+                $('#loginDiv').hide();
+                $('#leftLoginDiv').hide();
+                $('#statusDiv').show();
+                $('#treeDiv').show();
+                $('#context_switcher').show();
                 if (ACCOUNTS) {
-                    jQuery('#logout_link').show();
+                    $('#logout_link').show();
                 }
                 loggedIn = true;
                 initLoggedIn();
@@ -656,7 +656,7 @@ function authenticate() {
 }
 
 function checkSID() {
-    jQuery.ajax({
+    $.ajax({
         url: '/content/interface',
         async: false,
         data: {
@@ -672,7 +672,7 @@ function checkSID() {
         if (!json['sid_was_valid']) {
             if (json['sid']) {
                 SID = json['sid'];
-                jQuery.cookie("SID", SID);
+                $.cookie("SID", SID);
             }
         }
         LOGGED_IN = json['logged_in'];
@@ -680,7 +680,7 @@ function checkSID() {
 }
 
 function logout() {
-    jQuery.ajax({
+    $.ajax({
         async: false,
         data: {
             return_type: 'json',
@@ -689,7 +689,7 @@ function logout() {
         },
         success: function(json) {
             // errorCheck(json);
-            jQuery.cookie('SID', null);
+            $.cookie('SID', null);
             SID = null;
             window.location = '/';
         }
@@ -697,7 +697,7 @@ function logout() {
 }
 
 function getConfig() {
-    jQuery.ajax({
+    $.ajax({
         url: '/content/interface',
         async: false,
         data: {
@@ -731,12 +731,12 @@ function getConfig() {
                 }
             }
             if (cfg['have-inotify']) {
-                jQuery('#scan_mode_inotify').show()
-                jQuery('#scan_mode_inotify_label').show()
+                $('#scan_mode_inotify').show()
+                $('#scan_mode_inotify_label').show()
             }
             if (cfg['actions']) {
                 _.forEach(cfg['actions'], function(action) {
-                    jQuery('action_' + action).show();
+                    $('action_' + action).show();
                 });
             }
         }
@@ -1024,7 +1024,7 @@ function findNodeWithID(node, nodeID) {
 	}
 }
 function readStates() {
-	states = jQuery.cookie('tree' + documentID);
+	states = $.cookie('tree' + documentID);
 	if (states != null) {
 		var array = states.split(';');
 		for(var i=0;i<array.length;i++) {
@@ -1068,7 +1068,7 @@ function writeStates(nodeID,newstate) {
 			str += nodeID + '|' + newstate + ';';
 		}
 	}
-	jQuery.cookie('tree' + documentID,str);
+	$.cookie('tree' + documentID,str);
 }
 function showTree(path) {
 	readStates();
@@ -1348,7 +1348,7 @@ function selectNode(nodeID) {
     if (selectedNode == null || selectedNode != nodeID)
     {
         selectedNode = nodeID;
-	    var nodetitle = jQuery('#title' + selectedNode);
+	    var nodetitle = $('#title' + selectedNode);
         nodetitle.className = 'treetitleselectedfocused';
     }
 	
@@ -1653,12 +1653,12 @@ function treeInit()
     
     documentID = "mediatombUI";
     
-    var $rootContainer = jQuery('#treeDiv');
+    var $rootContainer = $('#treeDiv');
     dbStuff.container = treeDocument.createElement("div");
     fsStuff.container = treeDocument.createElement("div");
     
-    jQuery(dbStuff.container).hide();
-    jQuery(fsStuff.container).hide();
+    $(dbStuff.container).hide();
+    $(fsStuff.container).hide();
     $rootContainer.append(dbStuff.container);
     $rootContainer.append(fsStuff.container);
     
@@ -1689,10 +1689,10 @@ function setTreeContext(context) {
     var newContainer = type.container;
     if (container !== newContainer) {
         if (container) {
-            jQuery(container).hide();
+            $(container).hide();
         }
         container = newContainer;
-        jQuery(container).show();
+        $(container).show();
         rootNode = type.rootNode;
     }
     if (!type.treeShown) {
@@ -1779,7 +1779,7 @@ function standardClick(treeNode)
     {
         if (id.substr(0,1) == 'd')
         {
-            jQuery.cookie('lastNodeDb', id);
+            $.cookie('lastNodeDb', id);
             lastNodeDb = id;
             lastNodeDbWish = null;
             folderChange(id);
@@ -1789,7 +1789,7 @@ function standardClick(treeNode)
     {
         if (id.substr(0,1) == 'f')
         {
-            jQuery.cookie('lastNodeFs', id);
+            $.cookie('lastNodeFs', id);
             lastNodeFs = id;
             lastNodeFsWish = null;
             folderChange(id);
@@ -1813,7 +1813,7 @@ function fetchChildren(node, uiUpdate, selectIt) {
     var linkType = (type === 'd') ? 'containers' : 'directories';
     var select_it = selectIt ? '1' : '0';
     var async = ! uiUpdate;
-    jQuery.ajax({
+    $.ajax({
         url: '/content/interface',
         async: async,
         data: {
@@ -1933,10 +1933,10 @@ function itemInit()
 {
     rightDocument = document;
     topRightDocument = document;
-    dbItemRoot = jQuery('#item_db_div');
-    fsItemRoot = jQuery('#item_fs_div');
-    dbTopItemRoot = jQuery('#item_db_head');
-    fsTopItemRoot = jQuery('#item_fs_head');
+    dbItemRoot = $('#item_db_div');
+    fsItemRoot = $('#item_fs_div');
+    dbTopItemRoot = $('#item_db_head');
+    fsTopItemRoot = $('#item_fs_head');
     itemChangeType('db');
     if (viewItems == -1) {
         viewItems = defaultViewItems;
@@ -1948,9 +1948,9 @@ function itemChangeType(context) {
     itemRoot = (context === 'db') ? dbItemRoot : fsItemRoot; // XXX global
     topItemRoot = (context === 'db') ? dbTopItemRoot : fsTopItemRoot; // XXX global
     if (context === 'db') {
-        jQuery('#item_db_div').show();
+        $('#item_db_div').show();
     } else if (context === 'db') {
-        jQuery('#item_fs_div').show();
+        $('#item_fs_div').show();
     }
 }
 
@@ -1977,7 +1977,7 @@ function loadItems(id, start) {
     id = id.substring(1);
     var itemLink = type == 'd' ? 'items' : 'files';
     var updates = type == 'd' ? 'check' : undefined;
-    jQuery.ajax({
+    $.ajax({
         url: '/content/interface',
         data: {
             sid: SID,
@@ -2358,15 +2358,15 @@ function loadItems(id, start) {
         }
         
         if (useFiles) {
-            jQuery(fsItemRoot).children(':first').replaceWith(itemsEl);
-            jQuery(dbItemRoot).hide();
-            jQuery(fsItemRoot).show();
+            $(fsItemRoot).children(':first').replaceWith(itemsEl);
+            $(dbItemRoot).hide();
+            $(fsItemRoot).show();
         } else {
-            jQuery(dbItemRoot).children(':first').replaceWith(itemsEl);
-            jQuery(fsItemRoot).hide();
-            jQuery(dbItemRoot).show();
+            $(dbItemRoot).children(':first').replaceWith(itemsEl);
+            $(fsItemRoot).hide();
+            $(dbItemRoot).show();
         }
-        jQuery(topItemRoot).children(':first').replaceWith(topItemsEl);
+        $(topItemRoot).children(':first').replaceWith(topItemsEl);
         
        
         if (showPaging) {
@@ -2405,7 +2405,7 @@ function _addLink(useDocument, addToElement, first, href, text, icon, seperator)
 }
 
 function addItem(itemId) {
-    jQuery.ajax({
+    $.ajax({
         url: '/content/interface',
         data: {
             sid: SID,
@@ -2422,13 +2422,13 @@ function addItem(itemId) {
 
 function userAddItemStart() {
     updateItemAddEditFields();
-    jQuery(itemRoot).hide();
-    itemRoot = jQuery('#item_add_edit_div')[0];
-    jQuery(itemRoot).show();
+    $(itemRoot).hide();
+    itemRoot = $('#item_add_edit_div')[0];
+    $(itemRoot).show();
 }
 
 function userEditItemStart(objectId) {
-    jQuery.ajax({
+    $.ajax({
         url: '/content/interface',
         data: {
             sid: SID,
@@ -2440,9 +2440,9 @@ function userEditItemStart(objectId) {
             // if (!errorCheck(xml)) return;
             var item = json['item'];
             updateItemAddEditFields(item);
-            jQuery(itemRoot).hide();
-            itemRoot = jQuery('#item_add_edit_div')[0];
-            jQuery(itemRoot).show();
+            $(itemRoot).hide();
+            itemRoot = $('#item_add_edit_div')[0];
+            $(itemRoot).show();
             use_inactivity_timeout_short = true;
         }
     });
@@ -2579,8 +2579,8 @@ function itemAddEditSubmit(objectId) {
         req_type: req_type, 
         object_id: objectId
     };
-    jQuery.extend(ajaxData, args);
-    jQuery.ajax({
+    $.extend(ajaxData, args);
+    $.ajax({
         url: '/content/interface',
         data: ajaxData,
         success: function() {
@@ -2606,7 +2606,7 @@ function removeItem(itemId, all) {
     var url = link('remove', {object_id: itemId, all: all_send}, true);
     
     use_inactivity_timeout_short = true;
-    jQuery.ajax({
+    $.ajax({
         url: '/content/interface',
         data: {
             sid: SID,
@@ -2626,7 +2626,7 @@ function changeItemsPerPage(formId) {
     var newViewItems = rightDocument.forms['itemsPerPageForm'+formId].elements['itemsPerPage'+formId].value;
     if (newViewItems != viewItems) {
         viewItems = newViewItems;
-        jQuery.cookie("viewItems", viewItems);
+        $.cookie("viewItems", viewItems);
         folderChange(selectedNode);
     }
 }
@@ -2642,7 +2642,7 @@ var autoscanPersistent;
 function showAutoscanDirs() {
     setUIContext('db');
     var url = link('autoscan', {action: 'list'}, true);
-    jQuery.ajax({
+    $.ajax({
         url: url,
         success: callback
     });
@@ -2650,8 +2650,8 @@ function showAutoscanDirs() {
         if (!errorCheck(xml)) {
             return;
         }
-        var $autoscansXMLel = jQuery(xml).find('autoscans');
-        var $autoscans = jQuery($autoscansXMLel).find('autoscan');
+        var $autoscansXMLel = $(xml).find('autoscans');
+        var $autoscans = $($autoscansXMLel).find('autoscan');
         if ($autoscansXMLel.length <= 0 || $autoscans.lenth <= 0) {
             return;
         }
@@ -2664,7 +2664,7 @@ function showAutoscanDirs() {
         autoscanHTMLel.appendChild(itemsTable);
         
         $autoscans.each(function() {
-            $this = jQuery(this);
+            $this = $(this);
             var itemRow = rightDocument.createElement("tr");
             var itemEntryTd = rightDocument.createElement("td");
             itemEntryTd.setAttribute("class", "itemEntry");
@@ -2697,16 +2697,16 @@ function showAutoscanDirs() {
             
             itemsTableBody.appendChild(itemRow);
         });
-        jQuery(itemRoot).hide();
+        $(itemRoot).hide();
         itemRoot = rightDocument.getElementById('autoscan_list_div');
         itemRoot.replaceChild(autoscanHTMLel, itemRoot.firstChild);
-        jQuery(itemRoot).show();
+        $(itemRoot).show();
     }
 }
 
 function editLoadAutoscanDirectory(objectId, fromFs) {
     var url = link("autoscan", {action: 'as_edit_load', object_id: objectId, from_fs: fromFs}, true);
-    jQuery.ajax({
+    $.ajax({
         url: url,
         success: callback
     });
@@ -2714,21 +2714,21 @@ function editLoadAutoscanDirectory(objectId, fromFs) {
         if (!errorCheck(xml)) {
             return;
         }
-        var $autoscan = jQuery(xml).find('autoscan');
+        var $autoscan = $(xml).find('autoscan');
         
         updateAutoscanEditFields($autoscan);
         scanModeChanged(true);
         
         if (autoscanPersistent) {
-            jQuery('#autoscan_persistent_message').show();
-            jQuery('#autoscan_set_button').hide();
+            $('#autoscan_persistent_message').show();
+            $('#autoscan_set_button').hide();
         } else {
-            jQuery('#autoscan_persistent_message').hide();
-            jQuery('#autoscan_set_button').show();
+            $('#autoscan_persistent_message').hide();
+            $('#autoscan_set_button').show();
         }
-        jQuery(itemRoot).hide(); 
-        itemRoot = jQuery('#autoscan_div')[0];
-        jQuery(itemRoot).show();
+        $(itemRoot).hide(); 
+        itemRoot = $('#autoscan_div')[0];
+        $(itemRoot).show();
     }
 }
 
@@ -2762,13 +2762,13 @@ function autoscanSubmit() {
     if (args['scan_mode'] == 'none') {
         use_inactivity_timeout_short = true;
     }
-    jQuery.extend(ajaxData, args);
+    $.extend(ajaxData, args);
     ajaxData = {
         sid: SID,
         return_type: 'json',
         req_type: 'autoscan',
     };
-    jQuery.ajax({
+    $.ajax({
         url: '/content/interface',
         data: ajaxData,
         success: function() {
@@ -2811,14 +2811,14 @@ function scanModeChanged(filled) {
             scan_level_text.replaceChild(rightDocument.createTextNode("Initial Scan:"), scan_level_text.firstChild);
             if (! filled)
                 elements['scan_level_basic'].checked = true;
-            jQuery(scan_interval_row).hide();
+            $(scan_interval_row).hide();
         }
         else
         {
             scan_level_text.replaceChild(rightDocument.createTextNode("Scan Level:"), scan_level_text.firstChild);
             if (! filled)
                 elements['scan_level_full'].checked = true;
-            jQuery(scan_interval_row).show();
+            $(scan_interval_row).show();
         }
         
         elements['recursive'].disabled = false;
@@ -2850,7 +2850,7 @@ function updateCurrentTask(taskEl) {
     if (taskID != currentTaskID) {
         currentTaskID = taskID;
 
-        var $currentTaskTdEl = jQuery('#currentTaskTd');
+        var $currentTaskTdEl = $('#currentTaskTd');
         if (taskID == -1) {
             if (! pollWhenIdle) {
                 clearPollInterval();
@@ -2858,10 +2858,10 @@ function updateCurrentTask(taskEl) {
             $currentTaskTdEl.hide();
         }
         else {
-            var currentTaskTxtEl = jQuery('#currentTaskText').children(':first');
+            var currentTaskTxtEl = $('#currentTaskText').children(':first');
             currentTaskTxtEl.replaceData(0, currentTaskTxtEl.length, taskEl.firstChild.data);
-            var $cancelCurrentTaskEl = jQuery('#cancelCurrentTask');
-            var $cancelCurrentTaskPlaceholderEl = jQuery('#cancelCurrentTaskPlaceholder');
+            var $cancelCurrentTaskEl = $('#cancelCurrentTask');
+            var $cancelCurrentTaskPlaceholderEl = $('#cancelCurrentTaskPlaceholder');
             if (taskEl.getAttribute("cancellable") == "1") {
                 $cancelCurrentTaskPlaceholderEl.hide();
                 $cancelCurrentTaskEl.show();
@@ -2899,7 +2899,7 @@ function cancelCurrentTask()
 }
 
 function cancelTask(taskID) {
-    jQuery.ajax({
+    $.ajax({
         url: '/content/interface',
         data: {
             req_type: 'tasks',
@@ -2915,16 +2915,17 @@ var ACCOUNTS; // accounts enabled or disabled
 var LOGGED_IN;// logged in?
               // is set by checkSID();
 var loggedIn = false;
-function init() {
-    jQuery('#context_switcher > button').click(function(ev) {
+
+$(document).ready(function() {
+    $('#context_switcher > button').click(function(ev) {
         ev.preventDefault();
         setUIContext($(this).value);
     });
-    TYPE = jQuery.cookie('TYPE');
-    SID = jQuery.cookie('SID');
-    lastNodeDbWish = jQuery.cookie('lastNodeDb');
-    lastNodeFsWish = jQuery.cookie('lastNodeFs');
-    var cookieViewItems = jQuery.cookie('viewItems');
+    TYPE = $.cookie('TYPE');
+    SID = $.cookie('SID');
+    lastNodeDbWish = $.cookie('lastNodeDb');
+    lastNodeFsWish = $.cookie('lastNodeFs');
+    var cookieViewItems = $.cookie('viewItems');
     if (cookieViewItems) {
         viewItems = cookieViewItems;
     }
@@ -2935,33 +2936,33 @@ function init() {
     var rightDocument = document;
     
     if (!SID || SID === null || !LOGGED_IN) {
-        jQuery('#loginDiv').show();
-        jQuery('#leftLoginDiv').show();
+        $('#loginDiv').show();
+        $('#leftLoginDiv').show();
     } else {
         loggedIn = true;
-        jQuery('#topDiv').show();
-        jQuery('#treeDiv').show();
-        jQuery('#context_switcher').show();
-        jQuery('#statusDiv').show();
+        $('#topDiv').show();
+        $('#treeDiv').show();
+        $('#context_switcher').show();
+        $('#statusDiv').show();
         if (ACCOUNTS) {
-            jQuery('#logout_link').show();
+            $('#logout_link').show();
         }
     }
     if (loggedIn) {
         initLoggedIn(TYPE);
     }
-    jQuery.ajaxSetup({
+    $.ajaxSetup({
         url: '/content/interface',
         data: {
             sid: SID
         }
     });
-}
+});
 
 function initLoggedIn(context) {
     itemInit();
     treeInit();
-    jQuery('#context_switcher > button[value=' + context + ']').addClass('selected');
+    $('#context_switcher > button[value=' + context + ']').addClass('selected');
     
     document.onkeypress=userActivity;
     document.onmousedown = mouseDownHandler;
@@ -2971,10 +2972,10 @@ function initLoggedIn(context) {
 }
 
 function setUIContext(context) {
-    jQuery('#context_switcher > button').removeClass('selected');
-    jQuery('#context_switcher > button[value=' + context + ']').addClass('selected');
+    $('#context_switcher > button').removeClass('selected');
+    $('#context_switcher > button[value=' + context + ']').addClass('selected');
     TYPE = context;
-    jQuery.cookie('TYPE', context);
+    $.cookie('TYPE', context);
     setTreeContext(context);
     itemChangeType(context);
 }
