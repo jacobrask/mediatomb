@@ -1813,7 +1813,6 @@ function fetchChildren(node, uiUpdate, selectIt) {
     var linkType = (type === 'd') ? 'containers' : 'directories';
     var select_it = selectIt ? '1' : '0';
     var async = ! uiUpdate;
-    
     jQuery.ajax({
         url: '/content/interface',
         async: async,
@@ -1977,32 +1976,37 @@ function loadItems(id, start) {
     var type = id.substring(0, 1);
     id = id.substring(1);
     var itemLink = type == 'd' ? 'items' : 'files';
-    var url = link(itemLink, {parent_id: id, start: start, count: viewItems}, true);
+    var updates = type == 'd' ? 'check' : undefined;
     jQuery.ajax({
-        url: url,
+        url: '/content/interface',
+        data: {
+            sid: SID,
+            return_type: 'json',
+            req_type: itemLink,
+            parent_id: id,
+            start: start,
+            count: viewItems,
+            updates: updates
+        },
         success: callback
     });
 
-    function callback(xml) {
-        if (!errorCheck(xml)) return;
-        
-        var $items = jQuery(xml).find('items');
+    function callback(json) {
+        var items = json['items'];
         var useFiles = false;
-        var childrenTag = 'item';
-        if ($items.length <= 0) {
-            $items = jQuery(xml).find('files');
-            if ($items.length <= 0) {
+        var childType = 'item';
+        if (!items) {
+            items = json['files'];
+            if (!items) {
                 alert("no items or files tag found");
                 return;
             }
             useFiles = true;
-            childrenTag = 'file';
+            childType = 'file';
         }
-
-        var ofId = $items.attr('parent_id');
-        var success = jQuery(xml).find('root').attr('success');
-        if (success !== '1') {
-            if (ofId == '0') {
+        var ofId = items['parent_id'];
+        if(!json['success']) {
+             if (ofId === 0) {
                 alert("Oops, your database seems to be corrupt. Please report this problem.");
                 return;
             }
@@ -2014,22 +2018,22 @@ function loadItems(id, start) {
             fetchChildren(parNode, true, true);
             return;
         }
-        
-        var isVirtual = ($items.attr('virtual') === '1');
-        var autoscanType = $items.attr('autoscan_type');
-        var autoscanMode = $items.attr('autoscan_mode');
-        var path = $items.attr('location');
+        var isVirtual = items['virtual'];
+        var autoscanType = items['autoscan_type'];
+        var autoscanMode = items['autoscan_mode'];
+        var path = items['location'];
         var loadItemId = (useFiles ? 'f' : 'd') + ofId;
-        var totalMatches = parseInt($items.attr('total_matches'));
-        var isProtected = ($items.attr('protect_container') === '1');
-        var itemsProtected = ($items.attr('protect_items') === '1');
+        var totalMatches = items['total_matches'];
+        var isProtected = items['protect_container'];;
+        var itemsProtected = items['protect_items'];
         var totalPages = Math.ceil(totalMatches / viewItems);
-        var start = parseInt($items.attr('start'));
+        var start = parseInt(items['start']);
         var thisPage = Math.abs(start / viewItems);
         var nextPageStart = (thisPage + 1) * viewItems;
         var prevPageStart = (thisPage - 1) * viewItems;
-        var showPaging = (! useFiles && totalMatches > viewItemsMin);
+        var showPaging = (!useFiles && totalMatches > viewItemsMin);
         var showPagingPages = (totalPages > 1);
+        
         if (showPaging) {
             if (showPagingPages) {
                 var pagesFrom;
@@ -2154,7 +2158,7 @@ function loadItems(id, start) {
             
         }
         
-        var children = $items.find(childrenTag);
+        var children = items[childType];
         var itemsEl = rightDocument.createElement("div");
         var topItemsEl = topRightDocument.createElement("div");
         itemsEl.setAttribute("class", "itemsEl");
@@ -2318,30 +2322,29 @@ function loadItems(id, start) {
             var itemButtons;
             itemButtons = itemButtonsTd;
             
-            var itemText = rightDocument.createTextNode(useFiles ? item.firstChild.nodeValue : jQuery(item).find('title').text());
+            var itemText = rightDocument.createTextNode(useFiles ? item.firstChild.nodeValue : item['title']);
             itemLink.appendChild(itemText);
-            
             itemRow.appendChild(itemEntryTd);
             itemRow.appendChild(itemButtonsTd);
             
             if (useFiles)
             {
-                _addLink(rightDocument, itemButtons, true, "javascript:addItem(\""+item.getAttribute("id")+"\");", "add", iconAdd);
+                _addLink(rightDocument, itemButtons, true, "javascript:addItem(\""+item["id"]+"\");", "add", iconAdd);
             }
             else
             {
-                if (! itemsProtected)
+                if (!itemsProtected)
                 {
-                    _addLink(rightDocument, itemButtons, true, "javascript:removeItem(\""+item.getAttribute("id")+"\", false);", "remove this", iconRemoveThis);
+                    _addLink(rightDocument, itemButtons, true, "javascript:removeItem(\""+item["id"]+"\", false);", "remove this", iconRemoveThis);
                     if (isVirtual)
                     {
-                        _addLink(rightDocument, itemButtons, false, "javascript:removeItem(\""+item.getAttribute("id")+"\", true);", "remove all", iconRemoveAll);
+                        _addLink(rightDocument, itemButtons, false, "javascript:removeItem(\""+item["id"]+"\", true);", "remove all", iconRemoveAll);
                     }
                 }
                 
-                _addLink(rightDocument, itemButtons, false, "javascript:userEditItemStart('"+item.getAttribute("id")+"');", "edit", iconEdit);
+                _addLink(rightDocument, itemButtons, false, "javascript:userEditItemStart('"+item["id"]+"');", "edit", iconEdit);
                 
-                itemLink.setAttribute("href", jQuery(item).find('res').text());
+                itemLink.setAttribute("href", item['res']);
                 
             }
             itemsTableBody.appendChild(itemRow);
