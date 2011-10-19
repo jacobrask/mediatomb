@@ -2898,23 +2898,17 @@ function cancelCurrentTask()
         cancelTask(currentTaskID);
 }
 
-function cancelTask(taskID)
-{
-    var url = link('tasks', {action: 'cancel', task_id: taskID}, false);
-    var myAjax = new Ajax.Request(
-        url,
-        {
-            method: 'get',
-            onComplete: cancelTaskCallback
-        });
+function cancelTask(taskID) {
+    jQuery.ajax({
+        url: '/content/interface',
+        data: {
+            req_type: 'tasks',
+            action: 'cancel',
+            task_id: taskID
+        }
+    });
 }
 
-function cancelTaskCallback(ajaxRequest)
-{
-    var xml = ajaxRequest.responseXML
-    if (! errorCheck(xml))
-        return;
-}
 var SID;      // session id
 var TYPE;     // database or filesystem
 var ACCOUNTS; // accounts enabled or disabled
@@ -2953,38 +2947,9 @@ function init() {
             jQuery('#logout_link').show();
         }
     }
-    var globalAjaxHandlers = {
-        onCreate: function()
-        {
-            setStatus("loading");
-        },
-        
-        onComplete: function()
-        {
-            if(Ajax.activeRequestCount < 0)
-                Ajax.activeRequestCount = 0;
-            if(Ajax.activeRequestCount == 0)
-            {
-                setStatus("idle");
-            }
-        },
-        
-        onException: function(req)
-        {
-            console.log("MediaTomb cannot be reached! Please check if the server is still running.");
-            clearPollInterval();
-            if(Ajax.activeRequestCount < 0)
-                Ajax.activeRequestCount = 0;
-            if(Ajax.activeRequestCount == 0)
-            {
-                setStatus("idle");
-            }
-        }
-    };
     if (loggedIn) {
         initLoggedIn(TYPE);
     }
-    Ajax.Responders.register(globalAjaxHandlers);
     jQuery.ajaxSetup({
         url: '/content/interface',
         data: {
