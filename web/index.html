@@ -48,7 +48,7 @@
             <td width="20%" valign="middle" align="left">
                 <div style="margin-left:60px; margin-top:7px; display:none;" id="statusDiv">
                     <img src="icons/status.png" width="25" height="38" border="0" alt="idle" class="status" id="statusIdle">
-                    <a href="javascript:parent.getUpdates(true);" id="statusUpdatesPending" style="display:none"><img src="icons/status_updates_pending.png" width="25" height="38" alt="updates pending..." border="0" class="status"></a>
+                    <a href="javascript:getUpdates(true);" id="statusUpdatesPending" style="display:none"><img src="icons/status_updates_pending.png" width="25" height="38" alt="updates pending..." border="0" class="status"></a>
                     <img src="icons/status_loading.png" width="25" height="38"  border="0" alt="loading..." class="status" id="statusWorking" style="display:none">
                 </div>
             </td>
@@ -56,13 +56,13 @@
                 <img src="icons/mediatomb.png" width="253" height="81" alt="MEDIATOMB" class="logo">
             </td>
             <td width="20%" valign="middle" align="center">
-                <a id="logout_link" href="javascript:parent.logout();" style="display:none;"><img id="logout_img" width="30" height="20" alt="Logout" src="/icons/stock_exit.png" border="0"></a>
+                <a id="logout_link" href="javascript:logout();" style="display:none;"><img id="logout_img" width="30" height="20" alt="Logout" src="/icons/stock_exit.png" border="0"></a>
             </td>
         </tr>
         <tr>
             <td colspan="2" style="vertical-align:middle;">
                 <div id="currentTaskTd" style="display:none;">
-                    <a id="cancelCurrentTask" href="javascript:parent.cancelCurrentTask();">
+                    <a id="cancelCurrentTask" href="javascript:cancelCurrentTask();">
                         <img src="/icons/remove_this.png" width="30" height="20" alt="cancel task" border="0" style="vertical-align:middle;">
                     </a>
                     <img id="cancelCurrentTaskPlaceholder" src="/icons/blank.png" width="30" height="20" alt="" border="0" style="vertical-align:middle;display:none;">
@@ -70,7 +70,7 @@
                 </div>
             </td>
             <td align="right"><!-- other Tasks | Autoscans -->
-                <a id="action_refresh_yt" style="display:none; margin-right:2em;" href="javascript:parent.action('refresh_yt')">Refresh YouTube content</a>
+                <a id="action_refresh_yt" style="display:none; margin-right:2em;" href="javascript:action('refresh_yt')">Refresh YouTube content</a>
             </td>
         </tr>
      </table>
@@ -103,12 +103,12 @@
     <div></div>
 </div>
 <div id="item_add_edit_div" style="display:none">
-    <form name="addEditItem" action="javascript:parent.itemAddEditSubmit();">
+    <form name="addEditItem" action="javascript:itemAddEditSubmit();">
         <table class="classicForm" align="center">
             <tr>
                 <td></td>
                 <td>
-                    <select name="obj_type" onchange="parent.updateItemAddEditFields()" size="1"></select>
+                    <select name="obj_type" onchange="updateItemAddEditFields()" size="1"></select>
                 </td>
             </tr>
             <tbody id="item_add_edit_tbody">
@@ -117,7 +117,7 @@
             <tr>
                 <td colspan="2" align="right">
                     <!-- TODO: doesn't work for add... --> 
-                    <input name="cancel" type="button" value="Cancel" onClick="parent.cancelButtonPressed();">
+                    <input name="cancel" type="button" value="Cancel" onClick="cancelButtonPressed();">
                     <!-- -->
                     <input name="submit" type="submit">
                 </td>
@@ -126,7 +126,7 @@
     </form>
 </div>
 <div id="autoscan_div" style="display:none">
-    <form name="autoscanForm" action="javascript:parent.autoscanSubmit();">
+    <form name="autoscanForm" action="javascript:autoscanSubmit();">
             <table class="classicForm" align="center">
                 <tr style="display:none" id="autoscan_persistent_message">
                     <td colspan="4" style="text-align:center">
@@ -143,13 +143,13 @@
                         Scan Mode:
                     </td>
                     <td>
-                            <input type="radio" name="scan_mode" id="scan_mode_none" value="none" checked="checked" onchange="parent.scanModeChanged();"> <label for="scan_mode_none">None</label>
+                            <input type="radio" name="scan_mode" id="scan_mode_none" value="none" checked="checked" onchange="scanModeChanged();"> <label for="scan_mode_none">None</label>
                     </td>
                     <td>
-                            <input type="radio" name="scan_mode" id="scan_mode_timed" value="timed" onchange="parent.scanModeChanged();"> <label for="scan_mode_timed">Timed</label>
+                            <input type="radio" name="scan_mode" id="scan_mode_timed" value="timed" onchange="scanModeChanged();"> <label for="scan_mode_timed">Timed</label>
                     </td>
                     <td>
-                            <input style="display:none" type="radio" name="scan_mode" id="scan_mode_inotify" value="inotify" onchange="parent.scanModeChanged();"> <label style="display:none" for="scan_mode_inotify" id="scan_mode_inotify_label">Inotify</label>
+                            <input style="display:none" type="radio" name="scan_mode" id="scan_mode_inotify" value="inotify" onchange="scanModeChanged();"> <label style="display:none" for="scan_mode_inotify" id="scan_mode_inotify_label">Inotify</label>
                     </td>
                 </tr>
                 <tr>
@@ -157,10 +157,10 @@
                         <span id="scan_level_text">&nbsp;</span>
                     </td>
                     <td>
-                            <input type="radio" name="scan_level" id="scan_level_basic" value="basic" onchange="parent.scanLevelChanged();"> <label for="scan_level_basic">Basic</label>
+                            <input type="radio" name="scan_level" id="scan_level_basic" value="basic" onchange="scanLevelChanged();"> <label for="scan_level_basic">Basic</label>
                     </td>
                     <td colspan="2">
-                            <input type="radio" name="scan_level" id="scan_level_full" value="full" checked="checked" onchange="parent.scanLevelChanged();"> <label for="scan_level_full">Full</label>
+                            <input type="radio" name="scan_level" id="scan_level_full" value="full" checked="checked" onchange="scanLevelChanged();"> <label for="scan_level_full">Full</label>
                     </td>
                 </tr>
                 <tr>
@@ -190,7 +190,7 @@
                 <tr><td>&nbsp;</td></tr>
                 <tr>
                     <td colspan="4" align="right">
-                        <input name="cancel" type="button" value="Cancel" class="button" onClick="parent.cancelButtonPressed();">
+                        <input name="cancel" type="button" value="Cancel" class="button" onClick="cancelButtonPressed();">
                         <input id="autoscan_set_button" name="submit" type="submit" value="Set" class="button">
                     </td>
                 </tr>
