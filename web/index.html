@@ -40,40 +40,19 @@
     <script src="/js/app.js"></script>
 </head>
 <body>
-    
-<div id="topDiv" style="color:black; background-image:url(icons/film.png); background-repeat:repeat-x; background-position: 40px 15px;">
-    <table width="100%" cellspacing="0" border="0">
-        <tr>
-            <td width="20%" valign="middle" align="left">
-                <div style="margin-left:60px; margin-top:7px; display:none;" id="statusDiv">
-                    <img src="icons/status.png" width="25" height="38" border="0" alt="idle" class="status" id="statusIdle">
-                    <a href="javascript:getUpdates(true);" id="statusUpdatesPending" style="display:none"><img src="icons/status_updates_pending.png" width="25" height="38" alt="updates pending..." border="0" class="status"></a>
-                    <img src="icons/status_loading.png" width="25" height="38"  border="0" alt="loading..." class="status" id="statusWorking" style="display:none">
-                </div>
-            </td>
-            <td width="60%" valign="middle" align="center">
-                <img src="icons/mediatomb.png" width="253" height="81" alt="MEDIATOMB" class="logo">
-            </td>
-            <td width="20%" valign="middle" align="center">
-                <a id="logout_link" href="javascript:logout();" style="display:none;"><img id="logout_img" width="30" height="20" alt="Logout" src="/icons/stock_exit.png" border="0"></a>
-            </td>
-        </tr>
-        <tr>
-            <td colspan="2" style="vertical-align:middle;">
-                <div id="currentTaskTd" style="display:none;">
-                    <a id="cancelCurrentTask" href="javascript:cancelCurrentTask();">
-                        <img src="/icons/remove_this.png" width="30" height="20" alt="cancel task" border="0" style="vertical-align:middle;">
-                    </a>
-                    <img id="cancelCurrentTaskPlaceholder" src="/icons/blank.png" width="30" height="20" alt="" border="0" style="vertical-align:middle;display:none;">
-                    <span style="vertical-align:middle;" id="currentTaskText">&nbsp;</span>
-                </div>
-            </td>
-            <td align="right"><!-- other Tasks | Autoscans -->
-                <a id="action_refresh_yt" style="display:none; margin-right:2em;" href="javascript:action('refresh_yt')">Refresh YouTube content</a>
-            </td>
-        </tr>
-     </table>
-</div>
+
+<header>
+    <img src="icons/mediatomb.png" width="253" height="81" alt="MEDIATOMB" class="logo">
+    <a id="logout_link" href="javascript:logout();" style="display:none;"><img id="logout_img" width="30" height="20" alt="Logout" src="/icons/stock_exit.png" border="0"></a>
+    <div id="currentTaskTd" style="display:none;">
+        <a id="cancelCurrentTask" href="javascript:cancelCurrentTask();">
+            <img src="/icons/remove_this.png" width="30" height="20" alt="cancel task" border="0" style="vertical-align:middle;">
+        </a>
+        <img id="cancelCurrentTaskPlaceholder" src="/icons/blank.png" width="30" height="20" alt="" border="0" style="vertical-align:middle;display:none;">
+        <span style="vertical-align:middle;" id="currentTaskText">&nbsp;</span>
+    </div>
+    <a id="action_refresh_yt" style="display:none; margin-right:2em;" href="javascript:action('refresh_yt')">Refresh YouTube content</a>
+</header>
 <div id="context_switcher" style="display:none;">
 <button
     name="context_switcher"

@@ -69,10 +69,16 @@ var getBrowseContext = function(callback) {
 }
 
 var showUI = function() {
-    $('#topDiv').show();
+    $('<button id="status">Status</button>')
+        .click(function(ev) {
+            ev.preventDefault(); 
+            if ($(this).hasClass('pending')) {
+                getUpdates(true);
+            }
+        })
+        .prependTo($('body > header'));
     $('#treeDiv').show();
     $('#context_switcher').show();
-    $('#statusDiv').show();
     /*if (ACCOUNTS) {
         $('#logout_link').show();
     }*/
@@ -106,6 +112,17 @@ var isLoggedIn = function() {
     itemInit();
     treeInit();
 }
+
+function setUIStatus(st) {
+    if (st === 'loading') {
+        $('#status').attr('class', 'loading');
+    } else if (st === 'pending') {
+        $('#status').attr('class', 'pending');
+    } else {
+        $('#status').attr('class', '');
+    }
+}
+
 
 $(document).ready(function() {
     $.ajaxSetup({
@@ -238,11 +255,11 @@ function errorCheck(xml, noredirect) {
 
 function handleUIUpdates($updateIDsEl) {
     if ($updateIDsEl.attr('pending') === '1') {
-        setStatus("updates_pending");
+        setUIStatus('loading');
         addUpdateTimer();
         last_update = new Date().getTime();
     } else if ($updateIDsEl.attr('updates') !== '1') {
-        setStatus("no_updates");
+        setUIStatus();
         clearUpdateTimer();
         last_update = new Date().getTime();
     } else {
@@ -295,7 +312,7 @@ function handleUIUpdates($updateIDsEl) {
             if (savedlastNodeDb)
                 selectNodeIfVisible(savedlastNodeDbIDParent);
         }
-        setStatus("no_updates");
+        setUIStatus();
         if (timer)
         {
             window.clearTimeout(timer);
@@ -316,41 +333,6 @@ function formToArray(form, args)
     }
 }
 
-var status_updates_pending = false;
-var status_loading = false;
-
-function setStatus(status) {
-    if (status == "idle" && status_loading) {
-        status_loading = false;
-        $('#statusWorking').hide();
-        if (status_updates_pending) {
-            $('statusUpdatesPending').show();
-        }
-        else {
-            $('statusIdle').show();
-        }
-    } else if (status == "loading" && ! status_loading) {
-        status_loading = true;
-        if (status_updates_pending) {
-            $('statusUpdatesPending').hide();
-        } else {
-            $('statusIdle').hide();
-        }
-        $('#statusWorking').show();
-    } else if (status == "updates_pending" && ! status_updates_pending) {
-        status_updates_pending = true;
-        if (!status_loading) {
-            $('statusIdle').hide();
-            $('statusUpdatesPending').show();
-        }
-    } else if (status == "no_updates" && status_updates_pending) {
-        status_updates_pending = false;
-        if (!status_loading) {
-            $('statusUpdatesPending').hide();
-            $('statusIdle').show();
-        }
-    }
-}
 
 function getUpdates(force) {
     if (loggedIn) {
@@ -739,7 +721,6 @@ function authenticate() {
                 // }
                 $('#loginDiv').hide();
                 $('#leftLoginDiv').hide();
-                $('#statusDiv').show();
                 $('#treeDiv').show();
                 $('#context_switcher').show();
                 if (ACCOUNTS) {
@@ -1782,7 +1763,7 @@ function setTreeContext(context) {
         if (context === 'db') {
             getUpdates(true);
         } else if (context === 'fs') {
-            setStatus("no_updates");
+            setUIStatus();
         }
     }
 }

@@ -11,6 +11,8 @@
                             Sergey 'Jin' Bostandzhyan <jin@mediatomb.cc>,
                             Leonhard Wimmer <leo@mediatomb.cc>
     
+    Copyright (C) 2011 Jacob Rask <jacob@jacobrask.net>
+
     MediaTomb is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License version 2
     as published by the Free Software Foundation.
@@ -23,24 +25,38 @@
     You should have received a copy of the GNU General Public License
     version 2 along with MediaTomb; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
-    
-    $Id$
 */
-body
-{
-    background-color:#dddddd;
+body {
+    background-color: #eee;
     font-family: "Helvetica", "Arial", "MS Sans Serif", sans-serif;
     font-size: 13px;
     margin:0;
     padding:0;
+    color: #333;
 }
-
-/* IE PNG fix from http://www.twinhelix.com/css/iepngfix/ */
-img
-{
-   behavior: url("js/iepngfix.htc")
+body > header {
+    background-image: url(icons/film.png);
+    background-repeat: repeat-x;
+    background-position: 40px 15px;
+    text-align: center;
 }
-
+#status {
+    background: url(icons/status.png) 50% 50% no-repeat;
+    height: 38px;
+    width: 25px;
+    border: 0;
+    text-indent: -9999px;
+    overflow: hidden;
+    float: left;
+    margin: 27px 0 0 6px;
+}
+#status.loading {
+    background-image: url(icons/status_loading.png);
+}
+#status.pending {
+    cursor: pointer;
+    background-image: url(icons/status_updates_pending.png);
+}
 input
 {
     font-family: "Helvetica", "Arial", "MS Sans Serif", sans-serif;
@@ -75,12 +91,6 @@ div#db_fs_selector a.selected
     background-color: #222222;
 	color: #ffffff;
     
-}
-
-div.topDiv
-{
-    vertical-align:middle;
-    /* padding:5px; */
 }
 
 table.contTable
@@ -176,11 +186,6 @@ table.classicForm
     padding-top: 20px;
 }
 
-.status
-{
-    vertical-align:middle;
-    z-index:12;
-}
 
 img.logo
 {
