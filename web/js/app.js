@@ -96,6 +96,11 @@ var isLoggedIn = function() {
         $(document).mousedown(function(ev) {
             mouseDownHandler(ev);
         });
+        if (context === 'db') {
+            $('#item_db_div').show();
+        } else if (context === 'fs') {
+            $('#item_fs_div').show();
+        }
     });
     showUI();
     itemInit();
@@ -143,7 +148,6 @@ var LOGGED_IN;// logged in?
               // is set by checkSID();
 var loggedIn = false;
 
-// TODO FIXME
 TYPE = $.cookie('TYPE');
 lastNodeDbWish = $.cookie('lastNodeDb');
 lastNodeFsWish = $.cookie('lastNodeFs');
@@ -154,7 +158,6 @@ if (cookieViewItems) {
 if (TYPE!="db" && TYPE!="fs") TYPE="db";
 var rightDocument = document;
 getConfig();    
-// END FIXME
 
 function isTypeDb()
 {
@@ -2956,9 +2959,6 @@ function cancelTask(taskID) {
         }
     });
 }
-
-
-
 
 function setUIContext(context) {
     $('#context_switcher > button').removeClass('selected');
