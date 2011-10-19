@@ -2428,30 +2428,33 @@ function userAddItemStart() {
 }
 
 function userEditItemStart(objectId) {
-    var url = link("edit_load", {object_id: objectId}, true);
     jQuery.ajax({
-        url: url,
-        success: callback
-    });
-    function callback(xml) {
-        if (!errorCheck(xml)) {
-            return;
+        url: '/content/interface',
+        data: {
+            sid: SID,
+            return_type: 'json',
+            req_type: 'edit_load',
+            object_id: objectId
+        },
+        success: function(json) {
+            // if (!errorCheck(xml)) return;
+            var item = json['item'];
+            updateItemAddEditFields(item);
+            jQuery(itemRoot).hide();
+            itemRoot = jQuery('#item_add_edit_div')[0];
+            jQuery(itemRoot).show();
+            use_inactivity_timeout_short = true;
         }
-        var $item = jQuery(xml).find('item');
-        updateItemAddEditFields($item);
-        jQuery(itemRoot).hide();
-        itemRoot = jQuery('#item_add_edit_div');
-        jQuery(itemRoot).show();
-        use_inactivity_timeout_short = true;
-    }
+    });
 }
 
-function updateItemAddEditFields($editItem) {
+function updateItemAddEditFields(editItem) {
+    console.log(editItem);
     var currentTypeOption;
     var form = rightDocument.forms['addEditItem'];
     var selectEl = form.elements['obj_type'];
     var submitEl = form.elements['submit'];
-    if ($editItem.length >= 0) {
+    if (editItem) {
         selectEl.disabled = false;
         submitEl.value = 'Add item...';
         currentTypeOption = selectEl.value;
@@ -2462,8 +2465,8 @@ function updateItemAddEditFields($editItem) {
     } else {
         selectEl.disabled = true;
         submitEl.value = 'Update item...';
-        currentTypeOption = $editItem.find('obj_type').text();
-        var objectId = $editItem.attr('object_id');
+        currentTypeOption = editItem['obj_type'];
+        var objectId = editItem['object_id'];
         selectEl.value = currentTypeOption;
         form.action = 'javascript:itemAddEditSubmit('+objectId+');';
     }
@@ -2536,13 +2539,13 @@ function updateItemAddEditFields($editItem) {
             var inputEl = rightDocument.createElement('input');
             inputEl.setAttribute('type', 'text');
             inputEl.setAttribute('name', fieldNameAr[i]);
-            if ($editItem.length >= 0)
+            if (editItem)
                 inputEl.setAttribute('value', defaultsAr[i]);
             else
             {
-                var $xmlElement = $(editItem).find(fieldNameAr[i]);
-                inputEl.setAttribute('value', $xmlElement.text());
-                if($xmlElement.attr('editable') !== '1') {
+                var obj = editItem[fieldNameAr[i]];
+                inputEl.setAttribute('value', obj['value']);
+                if(!obj['editable']) {
                     inputEl.setAttribute('disabled', 'disabled');
                 }
             }
