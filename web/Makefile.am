@@ -60,27 +60,16 @@ _DIST_FILES_ICONS = \
 ./icons/blank.gif
 
 _DIST_FILES_JS = \
-./js/autoscan.js \
-./js/md5.js \
-./js/prototype.js \
-./js/auth.js \
-./js/tasks.js \
-./js/tree.js \
-./js/tools.js \
-./js/items.js \
-./js/icons.js \
-./js/nanotree.js \
-./js/iepngfix.htc
+./js/app.js \
+./js/jquery.js \
+./js/jquery.cookie.js \
+./js/jquery-1.6.4.min.js \
+./js/underscore.js
 
 _DIST_FILES_WEB = \
 ./disabled.html \
 ./std_treelook.css \
 ./index.html \
-./left.html \
-./right.html \
-./top.html \
-./topleft.html \
-./topright.html \
 ./main.css \
 ./cm.xml \
 ./cds.xml \

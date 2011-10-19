@@ -12984,17 +12984,8 @@ md5 javascript implementation distributed under BSD License, Copyright (c)
 \end_layout
 
 \begin_layout Itemize
-Prototype JavaScript Framework http://www.prototypejs.org/ (c) 2005-2007 Sam
- Stephenson, MIT-style license.
-\end_layout
-
-\begin_layout Itemize
 (heavily modified version of) NanoTree http://nanotree.sourceforge.net/ (c)
  2003 (?) Martin Mouritzen <martin at nano dot dk>; LGPL
-\end_layout
-
-\begin_layout Itemize
-IE PNG fix from http://webfx.eae.net/dhtml/pngbehavior/pngbehavior.html
 \end_layout
 
 \begin_layout Itemize
