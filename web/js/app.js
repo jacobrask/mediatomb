@@ -1103,7 +1103,7 @@ function showNode(treeNode,lastNode) {
 	linestring = treeNode.getLineString();
 	var state = getState(treeNode.getID());
 	var str;
-	str = '<div  ondragenter="parent.dragEnter(\'' + treeNode.getID() + '\');" ondragleave="parent.dragLeave();" ondragstart="parent.startDrag(\'' + treeNode.getID() + '\');" ondrag="parent.dragMove();" ondragend="parent.endDrag(\'' + treeNode.getID() + '\')" id="node' + treeNode.getID() + '">';
+	str = '<div  ondragenter="dragEnter(\'' + treeNode.getID() + '\');" ondragleave="dragLeave();" ondragstart="startDrag(\'' + treeNode.getID() + '\');" ondrag="dragMove();" ondragend="endDrag(\'' + treeNode.getID() + '\')" id="node' + treeNode.getID() + '">';
 	str += '<nobr>';
 	for(var y=0;y<linestring.length;y++) {
 		if (linestring.charAt(y) == 'I') {
@@ -1117,18 +1117,18 @@ function showNode(treeNode,lastNode) {
 		// If this is the first child of the rootNode, and showRootNode is false, we want to display a different icon.
 		if (!showRootNode && (treeNode.getParent() == rootNode) && (treeNode.getParent().getFirstChild() == treeNode)) {
 			if (!lastNode) {
-				str += '<img id="handler' + treeNode.getID() + '" src="' + href + 'images/' + (state == 'open' ? imageMinusNoRoot : imagePlusNoRoot) + imageExtension + '" class="nanotree_children_no_root" ' + imageStyle + ' OnClick="parent.handleNode(\'' + treeNode.getID() + '\');">';
+				str += '<img id="handler' + treeNode.getID() + '" src="' + href + 'images/' + (state == 'open' ? imageMinusNoRoot : imagePlusNoRoot) + imageExtension + '" class="nanotree_children_no_root" ' + imageStyle + ' OnClick="handleNode(\'' + treeNode.getID() + '\');">';
 			}
 			else {
-				str += '<img id="handler' + treeNode.getID() + '" src="' + href + 'images/' + (state == 'open' ? imageMinusLastNoRoot : imagePlusLastNoRoot) + imageExtension + '" class="nanotree_children_last_no_root" ' + imageStyle + ' OnClick="parent.handleNode(\'' + treeNode.getID() + '\');">';
+				str += '<img id="handler' + treeNode.getID() + '" src="' + href + 'images/' + (state == 'open' ? imageMinusLastNoRoot : imagePlusLastNoRoot) + imageExtension + '" class="nanotree_children_last_no_root" ' + imageStyle + ' OnClick="handleNode(\'' + treeNode.getID() + '\');">';
 			}
 		}
 		else {
 			if (!lastNode) {
-				str += '<img id="handler' + treeNode.getID() + '" src="' + href + 'images/' + (state == 'open' ? imageMinus : imagePlus) + imageExtension + '" class="nanotree_children" ' + imageStyle + ' OnClick="parent.handleNode(\'' + treeNode.getID() + '\');">';
+				str += '<img id="handler' + treeNode.getID() + '" src="' + href + 'images/' + (state == 'open' ? imageMinus : imagePlus) + imageExtension + '" class="nanotree_children" ' + imageStyle + ' OnClick="handleNode(\'' + treeNode.getID() + '\');">';
 			}
 			else {
-				str += '<img id="handler' + treeNode.getID() + '" src="' + href + 'images/' + (state == 'open' ? imageMinusLast : imagePlusLast) + imageExtension + '" class="nanotree_children_last" ' + imageStyle + ' OnClick="parent.handleNode(\'' + treeNode.getID() + '\');">';
+				str += '<img id="handler' + treeNode.getID() + '" src="' + href + 'images/' + (state == 'open' ? imageMinusLast : imagePlusLast) + imageExtension + '" class="nanotree_children_last" ' + imageStyle + ' OnClick="handleNode(\'' + treeNode.getID() + '\');">';
 			}
 		}
 	}
@@ -1158,8 +1158,8 @@ function showNode(treeNode,lastNode) {
 		}
 	}
 	
-	str += '<img id="iconimage' + treeNode.getID() + '" src="' + iconStartImage + '" style="vertical-align:middle;' + imageStyleIcon + '" OnClick="parent.selectNode(\'' + treeNode.getID() + '\')" OnDblClick="parent.handleNode(\'' + treeNode.getID() + '\')">';
-	str += '&nbsp;<span unselectable="ON" style="vertical-align:bottom;" class="treetitle" ID="title' + treeNode.getID() + '" OnDblClick="parent.handleNode(\'' + treeNode.getID() + '\')" OnClick="parent.selectNode(\'' + treeNode.getID() + '\')">';
+	str += '<img id="iconimage' + treeNode.getID() + '" src="' + iconStartImage + '" style="vertical-align:middle;' + imageStyleIcon + '" OnClick="selectNode(\'' + treeNode.getID() + '\')" OnDblClick="handleNode(\'' + treeNode.getID() + '\')">';
+	str += '&nbsp;<span unselectable="ON" style="vertical-align:bottom;" class="treetitle" ID="title' + treeNode.getID() + '" OnDblClick="handleNode(\'' + treeNode.getID() + '\')" OnClick="selectNode(\'' + treeNode.getID() + '\')">';
 	str += treeNode.getName();
 	str += '</span>';
 	str += '</nobr>';
@@ -1401,10 +1401,10 @@ function refreshNode(treeNode) {
         }
         else {
             if (actionimage.className && actionimage.className.indexOf('_last') == -1) {
-                actionimage.outerHTML = '<img id="handler' + treeNode.getID() + '" src="' + href + 'images/' + imagePlus + imageExtension + '" class="nanotree_children" ' + imageStyle + ' OnClick="parent.handleNode(\'' + treeNode.getID() + '\');">';
+                actionimage.outerHTML = '<img id="handler' + treeNode.getID() + '" src="' + href + 'images/' + imagePlus + imageExtension + '" class="nanotree_children" ' + imageStyle + ' OnClick="handleNode(\'' + treeNode.getID() + '\');">';
             }
             else {
-                actionimage.outerHTML = '<img id="handler' + treeNode.getID() + '" src="' + href + 'images/' + imagePlusLast + '" class="nanotree_children_last" ' + imageStyle + ' OnClick="parent.handleNode(\'' + treeNode.getID() + '\');">';
+                actionimage.outerHTML = '<img id="handler' + treeNode.getID() + '" src="' + href + 'images/' + imagePlusLast + '" class="nanotree_children_last" ' + imageStyle + ' OnClick="handleNode(\'' + treeNode.getID() + '\');">';
             }
         }
     }
@@ -2088,8 +2088,8 @@ function loadItems(id, start) {
             
             if (prevPageStart >= 0)
             {
-                _addLink(rightDocument, pagingCellLeft, false, "javascript:parent.loadItems('"+loadItemId+"','0');", "first", iconFirst, " ");
-                _addLink(rightDocument, pagingCellLeft, false, "javascript:parent.loadItems('"+loadItemId+"','"+prevPageStart+"');", "previous", iconPrevious, " ");
+                _addLink(rightDocument, pagingCellLeft, false, "javascript:loadItems('"+loadItemId+"','0');", "first", iconFirst, " ");
+                _addLink(rightDocument, pagingCellLeft, false, "javascript:loadItems('"+loadItemId+"','"+prevPageStart+"');", "previous", iconPrevious, " ");
             }
             else
             {
@@ -2099,8 +2099,8 @@ function loadItems(id, start) {
             
             if (nextPageStart < totalMatches)
             {
-                _addLink(rightDocument, pagingCellRight, false, "javascript:parent.loadItems('"+loadItemId+"','"+nextPageStart+"');", "next", iconNext, " ");
-                _addLink(rightDocument, pagingCellRight, false, "javascript:parent.loadItems('"+loadItemId+"','"+((totalPages - 1) * viewItems)+"');", "last", iconLast, " ");
+                _addLink(rightDocument, pagingCellRight, false, "javascript:loadItems('"+loadItemId+"','"+nextPageStart+"');", "next", iconNext, " ");
+                _addLink(rightDocument, pagingCellRight, false, "javascript:loadItems('"+loadItemId+"','"+((totalPages - 1) * viewItems)+"');", "last", iconLast, " ");
             }
             else
             {
@@ -2125,7 +2125,7 @@ function loadItems(id, start) {
                 {
                     first = false;
                     var pagingLink = rightDocument.createElement("a");
-                    pagingLink.setAttribute("href", "javascript:parent.loadItems('"+loadItemId+"','0');");
+                    pagingLink.setAttribute("href", "javascript:loadItems('"+loadItemId+"','0');");
                     pagingLink.appendChild(rightDocument.createTextNode(1));
                     pagingPagesCell.appendChild(pagingLink);
                     if (pagesFrom > 1)
@@ -2148,7 +2148,7 @@ function loadItems(id, start) {
                     else
                     {
                         pagingLink = rightDocument.createElement("a");
-                        pagingLink.setAttribute("href", "javascript:parent.loadItems('"+loadItemId+"','"+(i * viewItems)+"');");
+                        pagingLink.setAttribute("href", "javascript:loadItems('"+loadItemId+"','"+(i * viewItems)+"');");
                     }
                     pagingLink.appendChild(rightDocument.createTextNode( i + 1));
                     pagingPagesCell.appendChild(pagingLink);
@@ -2157,7 +2157,7 @@ function loadItems(id, start) {
                 if (pagesTo < totalPages - 1)
                 {
                     var pagingLink = rightDocument.createElement("a");
-                    pagingLink.setAttribute("href", "javascript:parent.loadItems('"+loadItemId+"','"+((totalPages - 1) * viewItems)+"');");
+                    pagingLink.setAttribute("href", "javascript:loadItems('"+loadItemId+"','"+((totalPages - 1) * viewItems)+"');");
                     pagingLink.appendChild(rightDocument.createTextNode(totalPages));
                     if (pagesTo < totalPages - 2)
                         pagingPagesCell.appendChild(rightDocument.createTextNode(" ... "));
@@ -2213,8 +2213,8 @@ function loadItems(id, start) {
             pathEl.appendChild(topRightDocument.createTextNode(" /Filesystem" + path + (path.charAt(path.length - 1) != '/' ? '/' : '')));
             
             var first = true
-            first = _addLink(topRightDocument, buttons, first, "javascript:parent.addItem('"+ofId+"');", "add", iconAdd);
-            first = _addLink(topRightDocument, buttons, first, "javascript:parent.editLoadAutoscanDirectory('"+ofId+"', true);", "add as autoscan dir", iconAddAutoscan);
+            first = _addLink(topRightDocument, buttons, first, "javascript:addItem('"+ofId+"');", "add", iconAdd);
+            first = _addLink(topRightDocument, buttons, first, "javascript:editLoadAutoscanDirectory('"+ofId+"', true);", "add as autoscan dir", iconAddAutoscan);
         }
         else
         {
@@ -2283,15 +2283,15 @@ function loadItems(id, start) {
                 autoscanLink = true;
             
             if (addLink)
-                first = _addLink(topRightDocument, buttons, first, "javascript:parent.userAddItemStart();", "add Item", iconNewItem);
+                first = _addLink(topRightDocument, buttons, first, "javascript:userAddItemStart();", "add Item", iconNewItem);
             if (editLink)
-                first = _addLink(topRightDocument, buttons, first, "javascript:parent.userEditItemStart('"+ofId+"');", "edit", iconEdit);
+                first = _addLink(topRightDocument, buttons, first, "javascript:userEditItemStart('"+ofId+"');", "edit", iconEdit);
             if (removeThisLink)
-                first = _addLink(topRightDocument, buttons, first, "javascript:parent.removeItem('"+ofId+"', false);", "remove", iconRemoveThis);
+                first = _addLink(topRightDocument, buttons, first, "javascript:removeItem('"+ofId+"', false);", "remove", iconRemoveThis);
             if (removeAllLink)
-                first = _addLink(topRightDocument, buttons, first, "javascript:parent.removeItem('"+ofId+"', true);", "remove all", iconRemoveAll);
+                first = _addLink(topRightDocument, buttons, first, "javascript:removeItem('"+ofId+"', true);", "remove all", iconRemoveAll);
             if (autoscanLink)
-                first = _addLink(topRightDocument, buttons, first,  "javascript:parent.editLoadAutoscanDirectory('"+ofId+"', false);", "change autoscan dir", iconEditAutoscan);
+                first = _addLink(topRightDocument, buttons, first,  "javascript:editLoadAutoscanDirectory('"+ofId+"', false);", "change autoscan dir", iconEditAutoscan);
         }
         
         if (showPaging)
@@ -2301,7 +2301,7 @@ function loadItems(id, start) {
             var pagingSelect = rightDocument.createElement("select");
             pagingForm.appendChild(pagingSelect);
             pagingSelect.setAttribute("size", "1");
-            pagingSelect.setAttribute("onchange", "parent.changeItemsPerPage(1)");
+            pagingSelect.setAttribute("onchange", "changeItemsPerPage(1)");
             pagingSelect.setAttribute("name", "itemsPerPage1");
             
             pagingCellCenter.appendChild(pagingForm);
@@ -2311,7 +2311,7 @@ function loadItems(id, start) {
                 itemsEl.appendChild(pagingTab2.cloneNode(true));
             
             pagingForm.setAttribute("name", "itemsPerPageForm2");
-            pagingSelect.setAttribute("onchange", "parent.changeItemsPerPage(2)");
+            pagingSelect.setAttribute("onchange", "changeItemsPerPage(2)");
             pagingSelect.setAttribute("name", "itemsPerPage2");
         }
         
@@ -2342,20 +2342,20 @@ function loadItems(id, start) {
             
             if (useFiles)
             {
-                _addLink(rightDocument, itemButtons, true, "javascript:parent.addItem(\""+item.getAttribute("id")+"\");", "add", iconAdd);
+                _addLink(rightDocument, itemButtons, true, "javascript:addItem(\""+item.getAttribute("id")+"\");", "add", iconAdd);
             }
             else
             {
                 if (! itemsProtected)
                 {
-                    _addLink(rightDocument, itemButtons, true, "javascript:parent.removeItem(\""+item.getAttribute("id")+"\", false);", "remove this", iconRemoveThis);
+                    _addLink(rightDocument, itemButtons, true, "javascript:removeItem(\""+item.getAttribute("id")+"\", false);", "remove this", iconRemoveThis);
                     if (isVirtual)
                     {
-                        _addLink(rightDocument, itemButtons, false, "javascript:parent.removeItem(\""+item.getAttribute("id")+"\", true);", "remove all", iconRemoveAll);
+                        _addLink(rightDocument, itemButtons, false, "javascript:removeItem(\""+item.getAttribute("id")+"\", true);", "remove all", iconRemoveAll);
                     }
                 }
                 
-                _addLink(rightDocument, itemButtons, false, "javascript:parent.userEditItemStart('"+item.getAttribute("id")+"');", "edit", iconEdit);
+                _addLink(rightDocument, itemButtons, false, "javascript:userEditItemStart('"+item.getAttribute("id")+"');", "edit", iconEdit);
                 
                 itemLink.setAttribute("href", jQuery(item).find('res').text());
                 
@@ -2474,14 +2474,14 @@ function updateItemAddEditFields($editItem) {
         if (!currentTypeOption) {
             currentTypeOption = 'container';
         }
-        form.action = 'javascript:parent.itemAddEditSubmit();';
+        form.action = 'javascript:itemAddEditSubmit();';
     } else {
         selectEl.disabled = true;
         submitEl.value = 'Update item...';
         currentTypeOption = $editItem.find('obj_type').text();
         var objectId = $editItem.attr('object_id');
         selectEl.value = currentTypeOption;
-        form.action = 'javascript:parent.itemAddEditSubmit('+objectId+');';
+        form.action = 'javascript:itemAddEditSubmit('+objectId+');';
     }
     
     if (!selectEl.options[0]) {
@@ -2710,7 +2710,7 @@ function showAutoscanDirs() {
             itemRow.appendChild(itemEntryTd);
             itemRow.appendChild(itemButtonsTd);
             
-            _addLink(rightDocument, itemButtons, true, "javascript:parent.editLoadAutoscanDirectory('"+$this.attr('objectID')+"', false);", "edit", iconEditAutoscan);
+            _addLink(rightDocument, itemButtons, true, "javascript:editLoadAutoscanDirectory('"+$this.attr('objectID')+"', false);", "edit", iconEditAutoscan);
             
             itemsTableBody.appendChild(itemRow);
         });
