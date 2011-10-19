@@ -248,8 +248,7 @@ function setStatus(status) {
     }
 }
 
-function getUpdates(force)
-{
+function getUpdates(force) {
     if (loggedIn)
     {
         var url = link('void', {updates: (force ? 'get' : 'check')});
@@ -614,19 +613,17 @@ function binl2b64(binarray)
 }
 
 function authenticate() {
-    
     // fetch authentication token
-    var url = link('auth', {action: 'get_token'});
     jQuery.ajax({
-        url: url,
+        data: {
+            return_type: 'json',
+            req_type: 'auth',
+            action: 'get_token'
+        },
         success: callback
     });
-    function callback(xml) {
-        if (!errorCheck(xml)) {
-            return;
-        }
-        var $rootEl = jQuery(xml).find('root');
-        var token = jQuery(xml).find('token').text();
+    function callback(json) {
+        var token = json['token'];
 
         var username = document.login_form.username.value;
         var password = document.login_form.password.value;
@@ -634,13 +631,18 @@ function authenticate() {
         // create authentication password
         password = hex_md5(token + password);
         // try to login
-        var url = link('auth', {action: 'login', username: username, password: password});
         jQuery.ajax({
-            url: url,
-            success: function(xml) {
-                if (!errorCheck(xml)) {
-                    return;
-                }
+            data: {
+                return_type: 'json',
+                req_type: 'auth',
+                action: 'login',
+                username: username,
+                password: password
+            },
+            success: function(json) {
+                // if (!errorCheck(xml)) {
+                //     return;
+                // }
                 jQuery('#loginDiv').hide();
                 jQuery('#leftLoginDiv').hide();
                 jQuery('#statusDiv').show();
@@ -3023,6 +3025,12 @@ function init() {
         initLoggedIn(TYPE);
     }
     Ajax.Responders.register(globalAjaxHandlers);
+    jQuery.ajaxSetup({
+        url: '/content/interface',
+        data: {
+            sid: SID
+        }
+    });
 }
 
 function initLoggedIn(context) {
