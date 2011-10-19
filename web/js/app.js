@@ -82,12 +82,27 @@ var showLogin = function() {
     $('#leftLoginDiv').show();
 }
 
-$(document).ready(function() {
-    $('#context_switcher > button').click(function(ev) {
-        ev.preventDefault();
-        setUIContext($(this).value);
+// do this if a user is logged in
+var isLoggedIn = function() {
+    getBrowseContext(function(context) {
+        $('#context_switcher > button[value=' + context + ']').addClass('selected');
+        $('#context_switcher > button').click(function(ev) {
+            ev.preventDefault();
+            setUIContext($(this).value);
+        });
+        $(document).keypress(function(ev) {
+            userActivity(ev);
+        });
+        $(document).mousedown(function(ev) {
+            mouseDownHandler(ev);
+        });
     });
-    
+    showUI();
+    itemInit();
+    treeInit();
+}
+
+$(document).ready(function() {
     $.ajaxSetup({
         url: '/content/interface',
         data: {
@@ -95,7 +110,6 @@ $(document).ready(function() {
             sid: SID
         }
     });
-
     getSID(function(sid) {
         SID = sid;
     });
@@ -104,27 +118,19 @@ $(document).ready(function() {
     });
 
     // determine whether to show login form or ui.
-    // should of course be refactored asap when html is changed
     getSID(function(sid) {
         if (sid === null) {
             checkLoginStatus(function(loggedIn) {
                 if (!loggedIn) {
                     showLogin();
                 } else {
-                    showUI();
-                    getBrowseContext(function(context) {
-                        initLoggedIn(context);
-                    });
+                    isLoggedIn();
                 }
             });
         } else {
-            showUI();
-            getBrowseContext(function(context) {
-                initLoggedIn(context);
-            });
+            isLoggedIn();
         }
     });
-
 });
 var INACTIVITY_TIMEOUT = 5000,
     INACTIVITY_TIMEOUT_SHORT = 1000,
@@ -369,7 +375,7 @@ function userActivity(event) {
 var last_update = new Date().getTime();
 
 function mouseDownHandler(event) {
-    userActivity();
+    userActivity(event);
     var now = new Date().getTime();
     if (last_update + 3000 < now)
     {
@@ -737,7 +743,7 @@ function authenticate() {
                     $('#logout_link').show();
                 }
                 loggedIn = true;
-                initLoggedIn();
+                isLoggedIn();
                 updateTreeAfterLogin();
             }
         });
@@ -2952,17 +2958,7 @@ function cancelTask(taskID) {
 }
 
 
-function initLoggedIn(context) {
-    itemInit();
-    treeInit();
-    $('#context_switcher > button[value=' + context + ']').addClass('selected');
-    
-    document.onkeypress=userActivity;
-    document.onmousedown = mouseDownHandler;
-    document.onmousedown = mouseDownHandler;
-    document.onmousedown = mouseDownHandler;
-    document.onmousedown = mouseDownHandler;
-}
+
 
 function setUIContext(context) {
     $('#context_switcher > button').removeClass('selected');
