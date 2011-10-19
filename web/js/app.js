@@ -2404,30 +2404,27 @@ function _addLink(useDocument, addToElement, first, href, text, icon, seperator)
     return false; // to set the next "first"
 }
 
-function addItem(itemId)
-{
-    var url = link("add", {object_id: itemId}, true);
-    var myAjax = new Ajax.Request(
-        url,
-        {
-            method: 'get',
-            onComplete: addedItem
-        });
-}
-
-function addedItem(ajaxRequest)
-{
-    var xml = ajaxRequest.responseXML;
-    if (!errorCheck(xml)) return;
-    
-    addUpdateTimer();
+function addItem(itemId) {
+    jQuery.ajax({
+        url: '/content/interface',
+        data: {
+            sid: SID,
+            return_type: 'json',
+            req_type: 'add',
+            object_id: itemId
+        },
+        success: function() {
+            // if (!errorCheck(xml)) return;
+            addUpdateTimer();
+        }
+    });
 }
 
 function userAddItemStart() {
     updateItemAddEditFields();
-    Element.hide(itemRoot);
-    itemRoot=rightDocument.getElementById('item_add_edit_div');
-    Element.show(itemRoot);
+    jQuery(itemRoot).hide();
+    itemRoot = jQuery('#item_add_edit_div')[0];
+    jQuery(itemRoot).show();
 }
 
 function userEditItemStart(objectId) {
