@@ -2622,19 +2622,16 @@ function removeItem(itemId, all) {
     });
 }
 
-function changeItemsPerPage(formId)
-{
+function changeItemsPerPage(formId) {
     var newViewItems = rightDocument.forms['itemsPerPageForm'+formId].elements['itemsPerPage'+formId].value;
-    if (newViewItems != viewItems)
-    {
+    if (newViewItems != viewItems) {
         viewItems = newViewItems;
         jQuery.cookie("viewItems", viewItems);
         folderChange(selectedNode);
     }
 }
 
-function cancelButtonPressed()
-{
+function cancelButtonPressed() {
     itemChangeType('db');
 }
 
@@ -2754,34 +2751,32 @@ function updateAutoscanEditFields($autoscan) {
     elements['interval'].value = $autoscan.find('interval').text();
 }
 
-function autoscanSubmit()
-{
+function autoscanSubmit() {
     itemChangeType('db');
     var form = rightDocument.forms['autoscanForm'];
-    var args = new Object();
+    var args = {};
     args['action'] = 'as_edit_save';
     args['object_id'] = autoscanId;
     args['from_fs'] = (autoscanFromFs ? '1' : '0');
     formToArray(form, args);
-    if (args['scan_mode'] == 'none')
+    if (args['scan_mode'] == 'none') {
         use_inactivity_timeout_short = true;
-    var url = link('autoscan', args);
-    var myAjax = new Ajax.Request(
-        url,
-        {
-            method: 'get',
-            onComplete: autoscanSubmitCallback
-        });
+    }
+    jQuery.extend(ajaxData, args);
+    ajaxData = {
+        sid: SID,
+        return_type: 'json',
+        req_type: 'autoscan',
+    };
+    jQuery.ajax({
+        url: '/content/interface',
+        data: ajaxData,
+        success: function() {
+            folderChange(selectedNode);
+        }
+    });
 }
-
-function autoscanSubmitCallback(ajaxRequest)
-{
-    if (errorCheck(ajaxRequest.responseXML))
-        folderChange(selectedNode);
-}
-
-function scanModeChanged(filled)
-{
+function scanModeChanged(filled) {
     var elements = rightDocument.forms['autoscanForm'].elements;
     if (autoscanPersistent)
     {
