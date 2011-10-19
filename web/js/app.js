@@ -223,65 +223,6 @@ function appendImgNode(document, node, alt, icon)
     node.appendChild(img);
 }
 
-var timer;
-
-function errorCheck(xml, noredirect) {
-    if (!xml) {
-        return false;
-    }
-    var $rootEl = $(xml).find('root');
-    var $errorEl = $(xml).find('error');
-    var error = false;
-    var redirect = false;
-    var uiDisabled = false;
-    if ($errorEl.length > 0) {
-        var code = $errorEl.attr('code');
-        var mainCode = Math.floor(code / 100);
-        
-        // 2xx - object not found
-        // 3xx - login exception (not logged in or login error)
-        // 4xx - session error (no valid session)
-        // 5xx - storage exception
-        // 8xx - general error (no more accurate code available (yet))
-        // 900 - UI disabled
-        
-        if (mainCode == 4)
-            redirect = '/';
-        else if (mainCode == 9)
-            uiDisabled = true;
-        else if (mainCode != 2)
-            error = $errorEl.text();
-    }
-    
-    if (uiDisabled) {
-        window.location = "/disabled.html";
-        return false;
-    }
-    
-    if (redirect) {
-        $.cookie('SID', null);
-        if (SID && ! noredirect) {
-            SID = null;
-            window.location = redirect;
-        }
-        return false;
-    }
-    
-    // clears current task if no task element
-    updateCurrentTask($(xml).find('task')[0]);
-    
-    var $updateIDsEl = $(xml).find('update_ids');
-    if ($updateIDsEl.length > 0) {
-        handleUIUpdates($updateIDsEl);
-    }
-
-    if (error) {
-        alert(error);
-        return false;
-    }
-    return true;
-}
-
 function handleUIUpdates($updateIDsEl) {
     if ($updateIDsEl.attr('pending') === '1') {
         setUIStatus('loading');
@@ -373,7 +314,6 @@ function getUpdates(force) {
                 updates: updates
             },
             success: function(json) {
-                // if (! errorCheck(xml)) return;
                 last_update = new Date().getTime();
             }
         });
@@ -745,9 +685,6 @@ function authenticate() {
                 password: password
             },
             success: function(json) {
-                // if (!errorCheck(xml)) {
-                //     return;
-                // }
                 $('#loginDiv').hide();
                 $('#leftLoginDiv').hide();
                 $('#treeDiv').show();
@@ -2485,7 +2422,6 @@ function addItem(itemId) {
             object_id: itemId
         },
         success: function() {
-            // if (!errorCheck(xml)) return;
             addUpdateTimer();
         }
     });
@@ -2505,7 +2441,6 @@ function userEditItemStart(objectId) {
             object_id: objectId
         },
         success: function(json) {
-            // if (!errorCheck(xml)) return;
             var item = json['item'];
             updateItemAddEditFields(item);
             $(itemRoot).hide();
@@ -2711,9 +2646,6 @@ function showAutoscanDirs() {
         success: callback
     });
     function callback(xml) {
-        if (!errorCheck(xml)) {
-            return;
-        }
         var $autoscansXMLel = $(xml).find('autoscans');
         var $autoscans = $($autoscansXMLel).find('autoscan');
         if ($autoscansXMLel.length <= 0 || $autoscans.lenth <= 0) {
@@ -2779,9 +2711,6 @@ function editLoadAutoscanDirectory(objectId, fromFs) {
         success: callback
     });
     function callback(xml) {
-        if (!errorCheck(xml)) {
-            return;
-        }
         var $autoscan = $(xml).find('autoscan');
         
         updateAutoscanEditFields($autoscan);
