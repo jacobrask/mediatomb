@@ -34,27 +34,6 @@ var INACTIVITY_TIMEOUT_SHORT = 1000;
 
 var use_inactivity_timeout_short = false;
 
-function link(req_type, param, get_update_ids)
-{
-    var url = "/content/interface?req_type="+ encodeURIComponent(req_type) +"&return_type=xml&sid="+ SID;
-    var got_update_param = false;
-    if (param)
-        for (var key in param)
-        {
-            if (key == 'updates')
-            {
-                got_update_param = true;
-                if (! isTypeDb() || ! dbStuff.treeShown)
-                    continue;
-            }
-            url += "&" + encodeURIComponent(key) +"="+ encodeURIComponent(param[key]);
-        }
-    if (!got_update_param && get_update_ids && isTypeDb() && dbStuff.treeShown) {
-        url += "&updates=check";
-    }
-    return url;
-}
-
 function isTypeDb()
 {
     return (TYPE == "db");
@@ -253,9 +232,7 @@ function getUpdates(force) {
         var updates = force ? 'get' : 'check';
         $.ajax({
             async: false,
-            url: '/content/interface',
             data: {
-                sid: SID,
                 req_type: 'void',
                 updates: updates
             },
@@ -306,9 +283,7 @@ function clearUpdateTimer()
 
 function action(action) {
     $.ajax({
-        url: '/content/interface',
         data: {
-            sid: SID,
             req_type: 'action',
             action: action
         }
@@ -612,7 +587,6 @@ function authenticate() {
     // fetch authentication token
     $.ajax({
         data: {
-            return_type: 'json',
             req_type: 'auth',
             action: 'get_token'
         },
@@ -629,7 +603,6 @@ function authenticate() {
         // try to login
         $.ajax({
             data: {
-                return_type: 'json',
                 req_type: 'auth',
                 action: 'login',
                 username: username,
@@ -657,11 +630,8 @@ function authenticate() {
 
 function checkSID() {
     $.ajax({
-        url: '/content/interface',
         async: false,
         data: {
-            sid: SID,
-            return_type: 'json',
             req_type: 'auth',
             action: 'get_sid'
         },
@@ -683,7 +653,6 @@ function logout() {
     $.ajax({
         async: false,
         data: {
-            return_type: 'json',
             req_type: 'auth',
             action: 'logout'
         },
@@ -698,11 +667,8 @@ function logout() {
 
 function getConfig() {
     $.ajax({
-        url: '/content/interface',
         async: false,
         data: {
-            sid: SID,
-            return_type: 'json',
             req_type: 'auth',
             action: 'get_config'
         },
@@ -1814,11 +1780,8 @@ function fetchChildren(node, uiUpdate, selectIt) {
     var select_it = selectIt ? '1' : '0';
     var async = ! uiUpdate;
     $.ajax({
-        url: '/content/interface',
         async: async,
         data: {
-            sid: SID,
-            return_type: 'json',
             req_type: linkType,
             parent_id: id,
             select_it: select_it
@@ -1978,10 +1941,7 @@ function loadItems(id, start) {
     var itemLink = type == 'd' ? 'items' : 'files';
     var updates = type == 'd' ? 'check' : undefined;
     $.ajax({
-        url: '/content/interface',
         data: {
-            sid: SID,
-            return_type: 'json',
             req_type: itemLink,
             parent_id: id,
             start: start,
@@ -2406,10 +2366,7 @@ function _addLink(useDocument, addToElement, first, href, text, icon, seperator)
 
 function addItem(itemId) {
     $.ajax({
-        url: '/content/interface',
         data: {
-            sid: SID,
-            return_type: 'json',
             req_type: 'add',
             object_id: itemId
         },
@@ -2429,10 +2386,7 @@ function userAddItemStart() {
 
 function userEditItemStart(objectId) {
     $.ajax({
-        url: '/content/interface',
         data: {
-            sid: SID,
-            return_type: 'json',
             req_type: 'edit_load',
             object_id: objectId
         },
@@ -2574,14 +2528,11 @@ function itemAddEditSubmit(objectId) {
     formToArray(form, args);
 
     var ajaxData = {
-        sid: SID,
-        return_type: 'json',
         req_type: req_type, 
         object_id: objectId
     };
     $.extend(ajaxData, args);
     $.ajax({
-        url: '/content/interface',
         data: ajaxData,
         success: function() {
             window.setTimeout("getUpdates(true)", 800);
@@ -2603,14 +2554,10 @@ function removeItem(itemId, all) {
         all_send="1";
     else
         all_send="0";
-    var url = link('remove', {object_id: itemId, all: all_send}, true);
     
     use_inactivity_timeout_short = true;
     $.ajax({
-        url: '/content/interface',
         data: {
-            sid: SID,
-            return_type: 'json',
             req_type: 'remove', 
             object_id: itemId,
             all: all_send
@@ -2641,9 +2588,12 @@ var autoscanPersistent;
 
 function showAutoscanDirs() {
     setUIContext('db');
-    var url = link('autoscan', {action: 'list'}, true);
     $.ajax({
-        url: url,
+        data: {
+            return_type: 'xml',
+            req_type: 'autoscan',
+            action: 'list'
+        },
         success: callback
     });
     function callback(xml) {
@@ -2705,9 +2655,13 @@ function showAutoscanDirs() {
 }
 
 function editLoadAutoscanDirectory(objectId, fromFs) {
-    var url = link("autoscan", {action: 'as_edit_load', object_id: objectId, from_fs: fromFs}, true);
     $.ajax({
-        url: url,
+        data: {
+            req_type: 'autoscan',
+            action: 'as_edit_load',
+            object_id: objectId,
+            from_fs: fromFs
+        },
         success: callback
     });
     function callback(xml) {
@@ -2762,15 +2716,9 @@ function autoscanSubmit() {
     if (args['scan_mode'] == 'none') {
         use_inactivity_timeout_short = true;
     }
-    $.extend(ajaxData, args);
-    ajaxData = {
-        sid: SID,
-        return_type: 'json',
-        req_type: 'autoscan',
-    };
+    $.extend(args, { req_type: 'autoscan' });
     $.ajax({
-        url: '/content/interface',
-        data: ajaxData,
+        data: args,
         success: function() {
             folderChange(selectedNode);
         }
@@ -2900,7 +2848,6 @@ function cancelCurrentTask()
 
 function cancelTask(taskID) {
     $.ajax({
-        url: '/content/interface',
         data: {
             req_type: 'tasks',
             action: 'cancel',
@@ -2917,6 +2864,13 @@ var LOGGED_IN;// logged in?
 var loggedIn = false;
 
 $(document).ready(function() {
+    $.ajaxSetup({
+        return_type: 'json',
+        url: '/content/interface',
+        data: {
+            sid: SID
+        }
+    });
     $('#context_switcher > button').click(function(ev) {
         ev.preventDefault();
         setUIContext($(this).value);
@@ -2951,12 +2905,6 @@ $(document).ready(function() {
     if (loggedIn) {
         initLoggedIn(TYPE);
     }
-    $.ajaxSetup({
-        url: '/content/interface',
-        data: {
-            sid: SID
-        }
-    });
 });
 
 function initLoggedIn(context) {
