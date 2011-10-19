@@ -2449,7 +2449,6 @@ function userEditItemStart(objectId) {
 }
 
 function updateItemAddEditFields(editItem) {
-    console.log(editItem);
     var currentTypeOption;
     var form = rightDocument.forms['addEditItem'];
     var selectEl = form.elements['obj_type'];
@@ -2558,53 +2557,45 @@ function updateItemAddEditFields(editItem) {
     itemTbody.setAttribute("id", "item_add_edit_tbody");
 }
 
-function itemAddEditSubmit(objectId)
-{
+function itemAddEditSubmit(objectId) {
     itemChangeType('db');
-    
+
     var req_type;
-    var args = new Object();
-    if (objectId)
-    {
+    var args = {};
+    if (objectId) {
         req_type = 'edit_save';
         args['object_id'] = objectId;
-    }
-    else
-    {
+    } else {
         req_type = 'add_object';
         args['parent_id'] = lastNodeDb.substr(1);
     }
     var form = rightDocument.forms['addEditItem'];
-    
+
     formToArray(form, args);
-    
-    var url = link(req_type, args);
-    var myAjax = new Ajax.Request(
-        url,
-        {
-            method: 'get',
-            onComplete: addEditRemoveSubmitted
-        });
-}
 
-function addEditRemoveSubmitted(ajaxRequest)
-{
-    if (!errorCheck(ajaxRequest.responseXML)) return;
-    
-    window.setTimeout("getUpdates(true)", 800);
-    folderChange(selectedNode);
+    var ajaxData = {
+        sid: SID,
+        return_type: 'json',
+        req_type: req_type, 
+        object_id: objectId
+    };
+    jQuery.extend(ajaxData, args);
+    jQuery.ajax({
+        url: '/content/interface',
+        data: ajaxData,
+        success: function() {
+            window.setTimeout("getUpdates(true)", 800);
+            folderChange(selectedNode);
+        }
+    });
 }
-
-function removeItem(itemId, all)
-{
-    if (itemId == '0')
-    {
+function removeItem(itemId, all) {
+    if (itemId == '0') {
         alert("Root container cannot be removed!");
         return;
     }
     
-    if ('d'+itemId == selectedNode)
-    {
+    if ('d'+itemId == selectedNode) {
         // current container will be removed, selecting parent...
         selectNode(getTreeNode(selectedNode).getParent().getID());
     }
@@ -2615,12 +2606,20 @@ function removeItem(itemId, all)
     var url = link('remove', {object_id: itemId, all: all_send}, true);
     
     use_inactivity_timeout_short = true;
-    var myAjax = new Ajax.Request(
-        url,
-        {
-            method: 'get',
-            onComplete: addEditRemoveSubmitted
-        });
+    jQuery.ajax({
+        url: '/content/interface',
+        data: {
+            sid: SID,
+            return_type: 'json',
+            req_type: 'remove', 
+            object_id: itemId,
+            all: all_send
+        },
+        success: function() {
+            window.setTimeout("getUpdates(true)", 800);
+            folderChange(selectedNode);
+        }
+    });
 }
 
 function changeItemsPerPage(formId)
