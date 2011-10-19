@@ -2811,14 +2811,14 @@ function scanModeChanged(filled) {
             scan_level_text.replaceChild(rightDocument.createTextNode("Initial Scan:"), scan_level_text.firstChild);
             if (! filled)
                 elements['scan_level_basic'].checked = true;
-            Element.hide(scan_interval_row);
+            jQuery(scan_interval_row).hide();
         }
         else
         {
             scan_level_text.replaceChild(rightDocument.createTextNode("Scan Level:"), scan_level_text.firstChild);
             if (! filled)
                 elements['scan_level_full'].checked = true;
-            Element.show(scan_interval_row);
+            jQuery(scan_interval_row).show();
         }
         
         elements['recursive'].disabled = false;
