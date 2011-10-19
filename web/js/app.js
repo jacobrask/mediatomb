@@ -305,7 +305,6 @@ function clearUpdateTimer()
 }
 
 function action(action) {
-    var url = link('action', {action: action});
     jQuery.ajax({
         url: '/content/interface',
         data: {
@@ -658,8 +657,10 @@ function authenticate() {
 
 function checkSID() {
     jQuery.ajax({
+        url: '/content/interface',
         async: false,
         data: {
+            sid: SID,
             return_type: 'json',
             req_type: 'auth',
             action: 'get_sid'
@@ -668,15 +669,14 @@ function checkSID() {
     });
     function callback(json) {
         // errorCheck(xml, true);
-        var sidWasValid = json['sid_was_valid'] === '1';
-        if (!sidWasValid) {
-            var newSID = json['sid'];
-            if (newSID) {
-                SID = newSID;
+        console.log(json);
+        if (!json['sid_was_valid']) {
+            if (json['sid']) {
+                SID = json['sid'];
                 jQuery.cookie("SID", SID);
             }
         }
-        LOGGED_IN = json['logged_in'] === '1';
+        LOGGED_IN = json['logged_in'];
     }
 }
 
@@ -689,7 +689,7 @@ function logout() {
             action: 'logout'
         },
         success: function(json) {
-            // errorCheck(ajaxRequest.responseXML);
+            // errorCheck(json);
             jQuery.cookie('SID', null);
             SID = null;
             window.location = '/';
@@ -698,65 +698,47 @@ function logout() {
 }
 
 function getConfig() {
-    var url = link('auth', {action: 'get_config'});
     jQuery.ajax({
-        url: url,
+        url: '/content/interface',
         async: false,
+        data: {
+            sid: SID,
+            return_type: 'json',
+            req_type: 'auth',
+            action: 'get_config'
+        },
         success: callback
     });
-    function callback(xml) {
-        errorCheck(xml, true);
-        var $configEl = jQuery(xml).find('config');
-        if ($configEl) {
-            accountsStr = $configEl.attr('accounts');
-            ACCOUNTS = (accountsStr && accountsStr == '1');
-            pollIntervalTime = $configEl.attr('poll-interval') * 1000;
-            pollWhenIdle = ($configEl.attr('poll-when-idle') == 1);
-            showTooltips = ($configEl.attr('show-tooltips') == 1);
+    function callback(json) {
+        // errorCheck(json, true);
+        var cfg = json['config'];
+        if (cfg) {
+            // update global configuration settings
+            ACCOUNTS = cfg['accounts'];
+            pollIntervalTime = cfg['poll-interval'] * 1000;
+            pollWhenIdle = cfg['poll-when-idle'];
+            showToolTips = cfg['show-tooltips'];
             if (pollWhenIdle) {
                 startPollInterval();
             }
-            var $itemsPerPageOptionsEl = jQuery($configEl).find('items-per-page');
-            if ($itemsPerPageOptionsEl) {
-                var newDefaultViewItems = $itemsPerPageOptionsEl.attr('default');
-                var options = $itemsPerPageOptionsEl.find('option');
-                var newItemOptions = [];
-                var newViewItemsMin = -1;
-                var defaultViewItemsFound = false;
-                var currentViewItemsFound = false;
-                for (var i = 0; i < options.length; i++) {
-                    var itemOption = options[i].firstChild.nodeValue;
-                    newItemOptions[i] = itemOption;
-                    if (itemOption == newDefaultViewItems) {
-                        defaultViewItemsFound = true;
-                    }
-                    if (viewItems != -1 && itemOption == viewItems) {
-                        currentViewItemsFound = true;
-                    }
-                    if (newViewItemsMin == -1 || itemOption < newViewItemsMin) {
-                        newViewItemsMin = itemOption;
-                    }
+            // pagination settings defaults
+            if (cfg['items-per-page']) {
+                itemOptions = cfg['items-per-page']['option'];
+                if (viewItems === undefined) {
+                    viewItems = cfg['items-per-page']['default'];
                 }
-                if (defaultViewItemsFound) {
-                    itemOptions = newItemOptions;
-                    viewItemsMin = newViewItemsMin;
-                    if (! currentViewItemsFound) {
-                        viewItems = newDefaultViewItems;
-                    }
+                if (viewItemsMin === undefined) {
+                    viewItemsMin = cfg['items-per-page']['option'][0];
                 }
             }
-            var haveInotify = ($configEl.attr('have-inotify') == '1');
-            if (haveInotify) {
+            if (cfg['have-inotify']) {
                 jQuery('#scan_mode_inotify').show()
                 jQuery('#scan_mode_inotify_label').show()
             }
-            var $actionsEl = $configEl.find('actions');
-            if ($actionsEl) {
-                var actions = $actionsEl.find('action');
-                for (var i = 0; i < actions.length; i++) {
-                    var action = actions[i].firstChild.nodeValue;
+            if (cfg['actions']) {
+                _.forEach(cfg['actions'], function(action) {
                     jQuery('action_' + action).show();
-                }
+                });
             }
         }
     }
@@ -1957,11 +1939,12 @@ var dbItemRoot;
 var fsItemRoot;
 
 // will be overridden by getConfigCallback() (auth.js)
-var itemOptions = new Array(10, 25, 50, 100);
-var viewItemsMin = 10;
-var viewItems = -1;
-var defaultViewItems = 25;
-var showAddPages = 3;
+
+var itemOptions = [],
+    viewItemsMin,
+    viewItems;
+var defaultViewItems = 25,
+    showAddPages = 3;
 
 function itemInit()
 {
