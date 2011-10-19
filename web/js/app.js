@@ -669,7 +669,6 @@ function checkSID() {
     });
     function callback(json) {
         // errorCheck(xml, true);
-        console.log(json);
         if (!json['sid_was_valid']) {
             if (json['sid']) {
                 SID = json['sid'];
@@ -1008,8 +1007,8 @@ function TreeNode(id,name,icon,param,orderNumber) {
 }
 
 
-function findNodeWithID(node,nodeID) {
-	if (node.getID() == nodeID) {
+function findNodeWithID(node, nodeID) {
+	if (node.getID() === nodeID) {
 		return node;
 	}
 	else {
@@ -1811,40 +1810,39 @@ function fetchChildren(node, uiUpdate, selectIt) {
     var id = node.getID();
     var type = id.substring(0, 1);
     id = id.substring(1);
-    var linkType = (type == 'd') ? 'containers' : 'directories';
-    var url = link(linkType, {parent_id: id, select_it: (selectIt ? '1' : '0')});
+    var linkType = (type === 'd') ? 'containers' : 'directories';
+    var select_it = selectIt ? '1' : '0';
     var async = ! uiUpdate;
     
     jQuery.ajax({
-        url: url,
+        url: '/content/interface',
         async: async,
+        data: {
+            sid: SID,
+            return_type: 'json',
+            req_type: linkType,
+            parent_id: id,
+            select_it: select_it
+        },
         success: callback
     });
 
-    function callback(xml) {
-        if (!errorCheck(xml)) {
-            return;
-        }
-        
-        var $containers = jQuery(xml).find('containers');
-        if (!$containers) {
+    function callback(json) {
+        var type;
+        var containers = json['containers'];
+        if (!containers) {
             alert("no containers tag found");
             return;
         }
-        var type = $containers.attr('type');
-        if (type == 'filesystem') {
+        if (containers['type'] === 'filesystem') {
             type = 'f';
-        } else if (type == 'database') {
+        } else if (containers['type'] === 'database') {
             type = 'd';
         }
-        var ofId = $containers.attr('parent_id');
-        var parentId = type+ofId;
-        
+        var parentId = type + containers['parent_id'];
         var node = getTreeNode(parentId);
-        var success = jQuery(xml).find('root').attr("success");
-        
-        if (success !== "1"){
-            if (ofId === '0') {
+        if (!json['success']) {
+            if (containers['parent_id'] === 0) {
                 alert("Oops, your database seems to be corrupt. Please report this problem.");
                 return;
             }
@@ -1854,54 +1852,40 @@ function fetchChildren(node, uiUpdate, selectIt) {
             fetchChildren(parNode, true, true);
             return;
         }
-        
-        var selectItStr = $containers.attr('select_it');
-        var selectIt = (selectItStr && selectItStr === '1');
+        var selectIt = containers['select_it'] === '1';
         
         if (node.childrenHaveBeenFetched) {
             return;
         }
-
-        var $cts = $containers.find('container');
-        if ($cts.length <= 0) {
+        
+        var cts = containers['container'];
+        if (cts.length <= 0) {
             alert("no containers found");
             return;
         }
-        
         var doSelectLastNode = false;
         
-        $cts.each(function() {
-            $this = jQuery(this);
-            var id = type + $this.attr('id');
-            var childCount = $this.attr('child_count');
-            if (childCount) {
-                childCount = parseInt(childCount);
-            }
-            var expandable = childCount ? true : false;
-            
-            var autoscanType = $this.attr('autoscan_type');
-            var autoscanMode = $this.attr('autoscan_mode');
-            
+        _.forEach(cts, function(c) {
+            var id = type + c['id'];
+            var expandable = c['child_count'] ? true : false;
+            var autoscanType = c['autoscan_type'];
+            var autoscanMode = c['autoscan_mode'];
             var thisIconArray = iconArray;
-            if (autoscanType == 'ui') {
-                if (autoscanMode == 'inotify') {
+            if (autoscanType === 'ui') {
+                if (autoscanMode === 'inotify') {
                     thisIconArray = autoscanInotifyIconArray;
                 } else {
                     thisIconArray = autoscanTimedIconArray;
                 }
-            }
-            
-            if (autoscanType == 'persistent') {
+            } else if (autoscanType == 'persistent') {
                 if (autoscanMode == 'inotify') {
                     thisIconArray = autoscanInotifyConfigIconArray;
                 } else {
                     thisIconArray = autoscanTimedConfigIconArray;
                 }
             }
-            
-            var title = $this.text();
+            var title = c['title'];
             var child = new TreeNode(id, title, thisIconArray);
-            
             child.setHasChildren(expandable);
             try {
                 node.addChild(child);
@@ -1910,17 +1894,17 @@ function fetchChildren(node, uiUpdate, selectIt) {
                 return;
             }
             child.addOpenEventListener("openEventListener");
-            
-            if (id == lastNodeDbWish) {
-                lastNodeDbWish=null;
+            if (id === lastNodeDbWish) {
+                lastNodeDbWish = null;
                 lastNodeDb = id;
                 doSelectLastNode = true;
-            } else if (id == lastNodeFsWish) {
-                lastNodeFsWish=null;
+            } else if (id === lastNodeFsWish) {
+                lastNodeFsWish = null;
                 lastNodeFs = id;
                 doSelectLastNode = true;
             }
         });
+        
         node.childrenHaveBeenFetched = true;
         refreshOrQueueNode(node);
         if (doSelectLastNode) {
