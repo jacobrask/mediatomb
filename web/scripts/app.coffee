@@ -10,7 +10,7 @@ $ ->
 
     renderView = (view, callback) ->
         loadScript '/views/' + view + '.js', ->
-            $('body').html templates[view]()
+            $('#main').html templates[view]()
             callback()
 
     $.ajaxSetup

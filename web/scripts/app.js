@@ -12,7 +12,7 @@
     };
     renderView = function(view, callback) {
       return loadScript('/views/' + view + '.js', function() {
-        $('body').html(templates[view]());
+        $('#main').html(templates[view]());
         return callback();
       });
     };
