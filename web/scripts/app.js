@@ -64,15 +64,19 @@
         }
       });
       return getConfig('accounts', function(accounts) {
-        if (accounts) {
-          return renderView('login', function() {
-            return console.log('login rendered');
-          });
-        } else {
-          return renderView('main', function() {
-            return console.log('main rendered');
-          });
-        }
+        return getConfig('logged_in', function(loggedIn) {
+          if (loggedIn || !accounts) {
+            return renderView('main', function() {
+              return console.log('main rendered');
+            });
+          } else {
+            return renderView('login', function() {
+              return loadScript('/scripts/jquery.md5.js', function() {
+                return console.log('md5');
+              });
+            });
+          }
+        });
       });
     });
   });

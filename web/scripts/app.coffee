@@ -51,10 +51,11 @@ $ ->
             data:
                 sid: sid
         getConfig 'accounts', (accounts) ->
-            if accounts
-                renderView 'login', ->
-                    console.log 'login rendered'
-            else
-                renderView 'main', ->
-                    console.log 'main rendered'
-
+            getConfig 'logged_in', (loggedIn) ->
+                if loggedIn or !accounts
+                    renderView 'main', ->
+                        console.log 'main rendered'
+                else
+                    renderView 'login', ->
+                        loadScript '/scripts/jquery.md5.js', ->
+                            console.log 'md5'
