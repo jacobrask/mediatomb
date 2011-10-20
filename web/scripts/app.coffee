@@ -1,26 +1,16 @@
 $ ->
-    # loads scripts without global ajax settings
-    # the MT web server won't return static files with query strings
-    loadScript = (script) ->
-        $.Deferred ->
-            tmpData = $.ajaxSettings['data']
-            $.ajaxSettings['data'] = undefined
-            $.get script, =>
-                $.ajaxSettings['data'] = tmpData
-                this.resolve()
-        .promise()
-
     renderView = (view) ->
         $.Deferred ->
-            $.when(loadScript '/views/' + view + '.js').done =>
+            $.when $.get('/views/' + view + '.js').done =>
                 $('#main').html templates[view]()
                 this.resolve()
         .promise()
-
-    $.ajaxSetup
-        url: '/content/interface'
+    
+    ajaxDefault =
         data:
             return_type: 'json'
+    $.ajaxSetup
+        url: '/content/interface'
 
     # get session id from cookie or server
     getSID = (callback) ->
@@ -28,9 +18,10 @@ $ ->
             callback $.cookie 'session_id'
         else
             $.ajax
-                data:
+                data: $.extend
                     req_type: 'auth'
                     action: 'get_sid'
+                    ajaxDefault['data']
                 success: (json) ->
                     $.cookie 'session_id', json['sid']
                     callback json['sid']
@@ -42,18 +33,18 @@ $ ->
             callback config[key]
         else
             $.ajax
-                data:
-                    req_type: 'auth',
+                data: $.extend
+                    req_type: 'auth'
                     action: 'get_config'
+                    ajaxDefault['data']
+                data: data
                 success: (json) ->
                     config = json['config']
                     $.cookie 'config', JSON.stringify config
                     callback config[key]
 
     getSID (sid) ->
-        $.ajaxSetup
-            data:
-                sid: sid
+        ajaxDefault['data']['sid'] = sid
         getConfig 'accounts', (accounts) ->
             getConfig 'logged_in', (loggedIn) ->
                 if loggedIn or !accounts
@@ -62,27 +53,30 @@ $ ->
                 else
                     $.when(
                         renderView 'login',
-                        loadScript '/scripts/jquery.md5.js'
+                        $.get '/scripts/jquery.md5.js'
                     ).done ->
                        handleLogin()
 
     handleLogin = ->
         $('#login').submit ->
             $.ajax
-                data:
+                data: $.extend
                     req_type: 'auth'
                     action: 'get_token'
+                    ajaxDefault['data']
                 success: (json) ->
                     token = json['token']
                     username = $('#username').val()
                     password = $('#password').val()
                     passwordMd5 = $.md5(token + password)
+                    data = $.extend
+                        req_type: 'auth'
+                        action: 'login'
+                        username: username
+                        password: passwordMd5
+                        ajaxDefault['data']
                     $.ajax
-                        data:
-                            req_type: 'auth'
-                            action: 'login'
-                            username: username
-                            password: passwordMd5
+                        data: data
                         success: (json) ->
                             console.log json
             false

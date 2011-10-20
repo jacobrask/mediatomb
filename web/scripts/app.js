@@ -1,41 +1,32 @@
 (function() {
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   $(function() {
-    var getConfig, getSID, handleLogin, loadScript, renderView;
-    loadScript = function(script) {
-      return $.Deferred(function() {
-        var tmpData;
-        tmpData = $.ajaxSettings['data'];
-        $.ajaxSettings['data'] = void 0;
-        return $.get(script, __bind(function() {
-          $.ajaxSettings['data'] = tmpData;
-          return this.resolve();
-        }, this));
-      }).promise();
-    };
+    var ajaxDefault, getConfig, getSID, handleLogin, renderView;
     renderView = function(view) {
       return $.Deferred(function() {
-        return $.when(loadScript('/views/' + view + '.js')).done(__bind(function() {
+        return $.when($.get('/views/' + view + '.js').done(__bind(function() {
           $('#main').html(templates[view]());
           return this.resolve();
-        }, this));
+        }, this)));
       }).promise();
     };
-    $.ajaxSetup({
-      url: '/content/interface',
+    ajaxDefault = {
       data: {
         return_type: 'json'
       }
+    };
+    $.ajaxSetup({
+      url: '/content/interface'
     });
     getSID = function(callback) {
       if ($.cookie('session_id') != null) {
         return callback($.cookie('session_id'));
       } else {
         return $.ajax({
-          data: {
+          data: $.extend({
             req_type: 'auth',
             action: 'get_sid'
-          },
+          }, ajaxDefault['data']),
           success: function(json) {
             $.cookie('session_id', json['sid']);
             return callback(json['sid']);
@@ -50,10 +41,11 @@
         return callback(config[key]);
       } else {
         return $.ajax({
-          data: {
+          data: $.extend({
             req_type: 'auth',
             action: 'get_config'
-          },
+          }, ajaxDefault['data']),
+          data: data,
           success: function(json) {
             config = json['config'];
             $.cookie('config', JSON.stringify(config));
@@ -63,11 +55,7 @@
       }
     };
     getSID(function(sid) {
-      $.ajaxSetup({
-        data: {
-          sid: sid
-        }
-      });
+      ajaxDefault['data']['sid'] = sid;
       return getConfig('accounts', function(accounts) {
         return getConfig('logged_in', function(loggedIn) {
           if (loggedIn || !accounts) {
@@ -75,7 +63,7 @@
               return console.log('main rendered');
             });
           } else {
-            return $.when(renderView('login', loadScript('/scripts/jquery.md5.js'))).done(function() {
+            return $.when(renderView('login', $.get('/scripts/jquery.md5.js'))).done(function() {
               return handleLogin();
             });
           }
@@ -85,23 +73,24 @@
     return handleLogin = function() {
       return $('#login').submit(function() {
         $.ajax({
-          data: {
+          data: $.extend({
             req_type: 'auth',
             action: 'get_token'
-          },
+          }, ajaxDefault['data']),
           success: function(json) {
-            var password, passwordMd5, token, username;
+            var data, password, passwordMd5, token, username;
             token = json['token'];
             username = $('#username').val();
             password = $('#password').val();
             passwordMd5 = $.md5(token + password);
+            data = $.extend({
+              req_type: 'auth',
+              action: 'login',
+              username: username,
+              password: passwordMd5
+            }, ajaxDefault['data']);
             return $.ajax({
-              data: {
-                req_type: 'auth',
-                action: 'login',
-                username: username,
-                password: passwordMd5
-              },
+              data: data,
               success: function(json) {
                 return console.log(json);
               }
