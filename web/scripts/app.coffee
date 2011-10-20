@@ -57,5 +57,27 @@ $ ->
                         console.log 'main rendered'
                 else
                     renderView 'login', ->
+                        # load md5 plugin to compare password hashes
                         loadScript '/scripts/jquery.md5.js', ->
-                            console.log 'md5'
+                            handleLogin()
+
+    handleLogin = ->
+        $('#login').submit ->
+            $.ajax
+                data:
+                    req_type: 'auth'
+                    action: 'get_token'
+                success: (json) ->
+                    token = json['token']
+                    username = $('#username').val()
+                    password = $('#password').val()
+                    passwordMd5 = $.md5(token + password)
+                    $.ajax
+                        data:
+                            req_type: 'auth'
+                            action: 'login'
+                            username: username
+                            password: passwordMd5
+                        success: (json) ->
+                            console.log json
+            false

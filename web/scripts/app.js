@@ -1,6 +1,6 @@
 (function() {
   $(function() {
-    var getConfig, getSID, loadScript, renderView;
+    var getConfig, getSID, handleLogin, loadScript, renderView;
     loadScript = function(script, callback) {
       var tmpData;
       tmpData = $.ajaxSettings['data'];
@@ -57,7 +57,7 @@
         });
       }
     };
-    return getSID(function(sid) {
+    getSID(function(sid) {
       $.ajaxSetup({
         data: {
           sid: sid
@@ -72,12 +72,41 @@
           } else {
             return renderView('login', function() {
               return loadScript('/scripts/jquery.md5.js', function() {
-                return console.log('md5');
+                return handleLogin();
               });
             });
           }
         });
       });
     });
+    return handleLogin = function() {
+      return $('#login').submit(function() {
+        $.ajax({
+          data: {
+            req_type: 'auth',
+            action: 'get_token'
+          },
+          success: function(json) {
+            var password, passwordMd5, token, username;
+            token = json['token'];
+            username = $('#username').val();
+            password = $('#password').val();
+            passwordMd5 = $.md5(token + password);
+            return $.ajax({
+              data: {
+                req_type: 'auth',
+                action: 'login',
+                username: username,
+                password: passwordMd5
+              },
+              success: function(json) {
+                return console.log(json);
+              }
+            });
+          }
+        });
+        return false;
+      });
+    };
   });
 }).call(this);
