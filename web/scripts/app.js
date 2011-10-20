@@ -1,20 +1,25 @@
 (function() {
+  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   $(function() {
     var getConfig, getSID, handleLogin, loadScript, renderView;
-    loadScript = function(script, callback) {
-      var tmpData;
-      tmpData = $.ajaxSettings['data'];
-      $.ajaxSettings['data'] = void 0;
-      return $.get(script, function() {
-        $.ajaxSettings['data'] = tmpData;
-        return callback();
-      });
+    loadScript = function(script) {
+      return $.Deferred(function() {
+        var tmpData;
+        tmpData = $.ajaxSettings['data'];
+        $.ajaxSettings['data'] = void 0;
+        return $.get(script, __bind(function() {
+          $.ajaxSettings['data'] = tmpData;
+          return this.resolve();
+        }, this));
+      }).promise();
     };
-    renderView = function(view, callback) {
-      return loadScript('/views/' + view + '.js', function() {
-        $('#main').html(templates[view]());
-        return callback();
-      });
+    renderView = function(view) {
+      return $.Deferred(function() {
+        return $.when(loadScript('/views/' + view + '.js')).done(__bind(function() {
+          $('#main').html(templates[view]());
+          return this.resolve();
+        }, this));
+      }).promise();
     };
     $.ajaxSetup({
       url: '/content/interface',
@@ -70,10 +75,8 @@
               return console.log('main rendered');
             });
           } else {
-            return renderView('login', function() {
-              return loadScript('/scripts/jquery.md5.js', function() {
-                return handleLogin();
-              });
+            return $.when(renderView('login', loadScript('/scripts/jquery.md5.js'))).done(function() {
+              return handleLogin();
             });
           }
         });

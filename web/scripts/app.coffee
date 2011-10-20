@@ -1,17 +1,21 @@
 $ ->
     # loads scripts without global ajax settings
     # the MT web server won't return static files with query strings
-    loadScript = (script, callback) ->
-        tmpData = $.ajaxSettings['data']
-        $.ajaxSettings['data'] = undefined
-        $.get script, ->
-            $.ajaxSettings['data'] = tmpData
-            callback()
+    loadScript = (script) ->
+        $.Deferred ->
+            tmpData = $.ajaxSettings['data']
+            $.ajaxSettings['data'] = undefined
+            $.get script, =>
+                $.ajaxSettings['data'] = tmpData
+                this.resolve()
+        .promise()
 
-    renderView = (view, callback) ->
-        loadScript '/views/' + view + '.js', ->
-            $('#main').html templates[view]()
-            callback()
+    renderView = (view) ->
+        $.Deferred ->
+            $.when(loadScript '/views/' + view + '.js').done =>
+                $('#main').html templates[view]()
+                this.resolve()
+        .promise()
 
     $.ajaxSetup
         url: '/content/interface'
@@ -56,10 +60,11 @@ $ ->
                     renderView 'main', ->
                         console.log 'main rendered'
                 else
-                    renderView 'login', ->
-                        # load md5 plugin to compare password hashes
-                        loadScript '/scripts/jquery.md5.js', ->
-                            handleLogin()
+                    $.when(
+                        renderView 'login',
+                        loadScript '/scripts/jquery.md5.js'
+                    ).done ->
+                       handleLogin()
 
     handleLogin = ->
         $('#login').submit ->
