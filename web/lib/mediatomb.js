@@ -1,5 +1,5 @@
 (function() {
-  var ajaxDefaults, getConfig, getSID, handleLogin, renderView, showMsg, views;
+  var addLoginHandlers, ajaxDefaults, getConfig, getSID, renderView, showMsg, views;
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   ajaxDefaults = {
     data: {
@@ -80,16 +80,24 @@
     });
   };
   views['main'] = function() {
-    return h2('main');
+    a({
+      href: '#'
+    }, 'MediaTomb');
+    return a({
+      href: '#'
+    }, 'Files');
   };
   $.when(getSID()).done(function(sid) {
     ajaxDefaults['data']['sid'] = sid;
     return $.when(getConfig()).done(function(config) {
+      console.log(config);
       if ((config['logged_in'] != null) || !config['accounts']) {
-        return renderView('main');
+        return $.when(renderView('main')).done(function() {
+          return addMainHandlers();
+        });
       } else {
         return $.when(renderView('login', $.get('/lib/jquery.md5.js'))).done(function() {
-          return handleLogin();
+          return addLoginHandlers();
         });
       }
     });
@@ -103,7 +111,7 @@
       return $container.prepend($msgTag);
     }
   };
-  handleLogin = function() {
+  addLoginHandlers = function() {
     return $('#login').submit(function() {
       $.ajax({
         data: $.extend({

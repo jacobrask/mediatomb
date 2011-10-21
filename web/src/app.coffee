@@ -3,14 +3,16 @@ $.when(getSID()).done (sid) ->
     ajaxDefaults['data']['sid'] = sid
     # then decide whether to show login or ui
     $.when(getConfig()).done (config) ->
+        console.log config
         if config['logged_in']? or !config['accounts']
-            renderView 'main'
+             $.when(renderView 'main').done ->
+                addMainHandlers()
         else
             $.when(
                 renderView 'login',
                 $.get '/lib/jquery.md5.js'
             ).done ->
-               handleLogin()
+               addLoginHandlers()
 
 # prepend a message paragraph containing <text> to <$container>
 showMsg = ($container, text) ->
@@ -25,7 +27,7 @@ showMsg = ($container, text) ->
     else
         $container.prepend($msgTag)
 
-handleLogin = ->
+addLoginHandlers = ->
     $('#login').submit ->
         $.ajax(
             data: $.extend
@@ -50,3 +52,4 @@ handleLogin = ->
                 else
                     showMsg($(this).children(':first'), json['error']['text'])
         false
+

@@ -13,4 +13,5 @@ views['login'] = ->
             button 'Login'
 
 views['main'] = ->
-    h2 'main'
+    a href: '#', 'MediaTomb'
+    a href: '#', 'Files'
