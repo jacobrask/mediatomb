@@ -28,23 +28,25 @@
       }
     }).promise();
   };
-  getConfig = function(key, callback) {
-    var config;
-    if ($.cookie('config') != null) {
-      config = JSON.parse($.cookie('config'));
-      return callback(config[key]);
-    } else {
-      return $.ajax({
-        data: $.extend({
-          req_type: 'auth',
-          action: 'get_config'
-        }, ajaxDefault['data'])
-      }).done(function(json) {
-        config = json['config'];
-        $.cookie('config', JSON.stringify(config));
-        return callback(config[key]);
-      });
-    }
+  getConfig = function(key) {
+    return $.Deferred(function() {
+      var config;
+      if ($.cookie('config') != null) {
+        config = JSON.parse($.cookie('config'));
+        return this.resolve(config[key]);
+      } else {
+        return $.ajax({
+          data: $.extend({
+            req_type: 'auth',
+            action: 'get_config'
+          }, ajaxDefault['data'])
+        }).done(__bind(function(json) {
+          config = json['config'];
+          $.cookie('config', JSON.stringify(config));
+          return this.resolve(config[key]);
+        }, this));
+      }
+    }).promise();
   };
   handleLogin = function() {
     return $('#login').submit(function() {
@@ -83,8 +85,8 @@
   });
   $.when(getSID).done(function(sid) {
     ajaxDefault['data']['sid'] = sid;
-    return getConfig('accounts', function(accounts) {
-      return getConfig('logged_in', function(loggedIn) {
+    return $.when(getConfig('accounts')).done(function(accounts) {
+      return $.when(getConfig('logged_in')).done(function(loggedIn) {
         if (loggedIn || !accounts) {
           return renderView('main', function() {
             return console.log('main rendered');

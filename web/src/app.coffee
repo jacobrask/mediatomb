@@ -7,8 +7,8 @@ $.ajaxSetup
 
 $.when(getSID).done (sid) ->
     ajaxDefault['data']['sid'] = sid
-    getConfig 'accounts', (accounts) ->
-        getConfig 'logged_in', (loggedIn) ->
+    $.when(getConfig('accounts')).done (accounts) ->
+        $.when(getConfig('logged_in')).done (loggedIn) ->
             if loggedIn or !accounts
                 renderView 'main', ->
                     console.log 'main rendered'

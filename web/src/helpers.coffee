@@ -23,20 +23,22 @@ getSID = ->
     .promise()
 
 # get config key from cookie or server    
-getConfig = (key, callback) ->
-    if $.cookie('config')?
-        config = JSON.parse $.cookie 'config'
-        callback config[key]
-    else
-        $.ajax(
-            data: $.extend
-                req_type: 'auth'
-                action: 'get_config'
-                ajaxDefault['data']
-        ).done (json) ->
-            config = json['config']
-            $.cookie 'config', JSON.stringify config
-            callback config[key]
+getConfig = (key) ->
+    $.Deferred ->
+        if $.cookie('config')?
+            config = JSON.parse $.cookie 'config'
+            this.resolve(config[key])
+        else
+            $.ajax(
+                data: $.extend
+                    req_type: 'auth'
+                    action: 'get_config'
+                    ajaxDefault['data']
+            ).done (json) =>
+                config = json['config']
+                $.cookie 'config', JSON.stringify config
+                this.resolve(config[key])
+    .promise()
 
 handleLogin = ->
     $('#login').submit ->
