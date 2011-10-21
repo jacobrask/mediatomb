@@ -4,8 +4,7 @@ $.when(getSID()).done (sid) ->
     # then decide whether to show login or ui
     $.when(getConfig()).done (config) ->
         if config['logged_in']? or !config['accounts']
-            renderView 'main', ->
-                console.log 'main rendered'
+            renderView 'main'
         else
             $.when(
                 renderView 'login',
@@ -47,7 +46,7 @@ handleLogin = ->
                     ajaxDefaults['data']
             ).done (json) =>
                 if json['success']
-                    showMsg($(this).children(':first'), 'logged in')
+                    renderView 'main'
                 else
                     showMsg($(this).children(':first'), json['error']['text'])
         false

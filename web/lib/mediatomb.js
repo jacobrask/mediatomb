@@ -1,5 +1,5 @@
 (function() {
-  var ajaxDefaults, getConfig, getSID, handleLogin, renderView, showMsg;
+  var ajaxDefaults, getConfig, getSID, handleLogin, renderView, showMsg, views;
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   ajaxDefaults = {
     data: {
@@ -11,11 +11,9 @@
   });
   renderView = function(view) {
     return $.Deferred(function() {
-      return $.get('/lib/views/' + view + '.js').done(__bind(function() {
-        return $(document).ready(__bind(function() {
-          $('#main').html(templates[view]());
-          return this.resolve();
-        }, this));
+      return $(document).ready(__bind(function() {
+        $('#main').html(CoffeeKup.render(views[view]));
+        return this.resolve();
       }, this));
     }).promise();
   };
@@ -56,13 +54,39 @@
       }
     }).promise();
   };
+  views = [];
+  views['login'] = function() {
+    return form({
+      id: 'login'
+    }, function() {
+      return fieldset(function() {
+        legend('Log in');
+        label(function() {
+          text('Username');
+          return input({
+            id: 'username',
+            type: 'text'
+          });
+        });
+        label(function() {
+          text('Password');
+          return input({
+            id: 'password',
+            type: 'password'
+          });
+        });
+        return button('Login');
+      });
+    });
+  };
+  views['main'] = function() {
+    return h2('main');
+  };
   $.when(getSID()).done(function(sid) {
     ajaxDefaults['data']['sid'] = sid;
     return $.when(getConfig()).done(function(config) {
       if ((config['logged_in'] != null) || !config['accounts']) {
-        return renderView('main', function() {
-          return console.log('main rendered');
-        });
+        return renderView('main');
       } else {
         return $.when(renderView('login', $.get('/lib/jquery.md5.js'))).done(function() {
           return handleLogin();
@@ -101,7 +125,7 @@
           }, ajaxDefaults['data'])
         }).done(__bind(function(json) {
           if (json['success']) {
-            return showMsg($(this).children(':first'), 'logged in');
+            return renderView('main');
           } else {
             return showMsg($(this).children(':first'), json['error']['text']);
           }

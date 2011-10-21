@@ -7,10 +7,9 @@ $.ajaxSetup
 
 renderView = (view) ->
     $.Deferred ->
-        $.get('/lib/views/' + view + '.js').done =>
-            $(document).ready =>
-                $('#main').html templates[view]()
-                this.resolve()
+        $(document).ready =>
+            $('#main').html CoffeeKup.render(views[view])
+            this.resolve()
     .promise()
     
 # get session id from cookie or server
