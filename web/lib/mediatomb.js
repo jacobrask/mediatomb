@@ -56,6 +56,20 @@
       }
     }).promise();
   };
+  $.when(getSID()).done(function(sid) {
+    ajaxDefaults['data']['sid'] = sid;
+    return $.when(getConfig()).done(function(config) {
+      if ((config['logged_in'] != null) || !config['accounts']) {
+        return renderView('main', function() {
+          return console.log('main rendered');
+        });
+      } else {
+        return $.when(renderView('login', $.get('/lib/jquery.md5.js'))).done(function() {
+          return handleLogin();
+        });
+      }
+    });
+  });
   showMsg = function($container, text) {
     var $msgTag;
     $msgTag = $('<p>').text(text).addClass('msg');
@@ -96,18 +110,4 @@
       return false;
     });
   };
-  $.when(getSID()).done(function(sid) {
-    ajaxDefaults['data']['sid'] = sid;
-    return $.when(getConfig()).done(function(config) {
-      if ((config['logged_in'] != null) || !config['accounts']) {
-        return renderView('main', function() {
-          return console.log('main rendered');
-        });
-      } else {
-        return $.when(renderView('login', $.get('/lib/jquery.md5.js'))).done(function() {
-          return handleLogin();
-        });
-      }
-    });
-  });
 }).call(this);
