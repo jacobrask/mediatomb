@@ -1,12 +1,5 @@
-# setup defaults
-ajaxDefault =
-    data:
-        return_type: 'json'
-$.ajaxSetup
-    url: '/content/interface'
-
-$.when(getSID).done (sid) ->
-    ajaxDefault['data']['sid'] = sid
+$.when(getSID()).done (sid) ->
+    ajaxDefaults['data']['sid'] = sid
     $.when(getConfig('accounts')).done (accounts) ->
         $.when(getConfig('logged_in')).done (loggedIn) ->
             if loggedIn or !accounts

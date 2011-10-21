@@ -1,3 +1,10 @@
+# setup defaults
+ajaxDefaults =
+    data:
+        return_type: 'json'
+$.ajaxSetup
+    url: '/content/interface'
+
 renderView = (view) ->
     $.Deferred ->
         $.get('/lib/views/' + view + '.js').done =>
@@ -16,7 +23,7 @@ getSID = ->
                 data: $.extend
                     req_type: 'auth'
                     action: 'get_sid'
-                    ajaxDefault['data']
+                    ajaxDefaults['data']
             ).done (json) =>
                 $.cookie 'session_id', json['sid']
                 this.resolve(json['sid'])
@@ -33,7 +40,7 @@ getConfig = (key) ->
                 data: $.extend
                     req_type: 'auth'
                     action: 'get_config'
-                    ajaxDefault['data']
+                    ajaxDefaults['data']
             ).done (json) =>
                 config = json['config']
                 $.cookie 'config', JSON.stringify config
@@ -41,24 +48,27 @@ getConfig = (key) ->
     .promise()
 
 handleLogin = ->
-    $('#login').submit ->
-        $.ajax(
-            data: $.extend
-                req_type: 'auth'
-                action: 'get_token'
-                ajaxDefault['data']
-        ).done (json) ->
-            token = json['token']
-            username = $('#username').val()
-            password = $('#password').val()
-            passwordMd5 = $.md5(token + password)
+    $(document).ready ->
+        $('#login').submit ->
             $.ajax(
                 data: $.extend
                     req_type: 'auth'
-                    action: 'login'
-                    username: username
-                    password: passwordMd5
-                    ajaxDefault['data']
+                    action: 'get_token'
+                    ajaxDefaults['data']
             ).done (json) ->
-                console.log json
-        false
+                token = json['token']
+                username = $('#username').val()
+                password = $('#password').val()
+                passwordMd5 = $.md5(token + password)
+                $.ajax(
+                    data: $.extend
+                        req_type: 'auth'
+                        action: 'login'
+                        username: username
+                        password: passwordMd5
+                        ajaxDefaults['data']
+                ).done (json) ->
+                    error = json['error']
+                    if error
+                        console.log error['text']
+            false
