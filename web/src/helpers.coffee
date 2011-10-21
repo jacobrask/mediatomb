@@ -1,15 +1,9 @@
-# setup defaults
-ajaxDefault =
-    data:
-        return_type: 'json'
-$.ajaxSetup
-    url: '/content/interface'
-
 renderView = (view) ->
     $.Deferred ->
-        $.when $.get('/views/' + view + '.js').done =>
-            $('#main').html templates[view]()
-            this.resolve()
+        $.when $.get('/lib/views/' + view + '.js').done =>
+            $(document).ready =>
+                $('#main').html templates[view]()
+                this.resolve()
     .promise()
     
 # get session id from cookie or server
@@ -66,18 +60,3 @@ handleLogin = ->
                     success: (json) ->
                         console.log json
         false
-
-$ ->
-    getSID (sid) ->
-        ajaxDefault['data']['sid'] = sid
-        getConfig 'accounts', (accounts) ->
-            getConfig 'logged_in', (loggedIn) ->
-                if loggedIn or !accounts
-                    renderView 'main', ->
-                        console.log 'main rendered'
-                else
-                    $.when(
-                        renderView 'login',
-                        $.get '/scripts/jquery.md5.js'
-                    ).done ->
-                       handleLogin()

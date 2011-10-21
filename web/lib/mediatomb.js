@@ -9,11 +9,29 @@
   $.ajaxSetup({
     url: '/content/interface'
   });
+  getSID(function(sid) {
+    ajaxDefault['data']['sid'] = sid;
+    return getConfig('accounts', function(accounts) {
+      return getConfig('logged_in', function(loggedIn) {
+        if (loggedIn || !accounts) {
+          return renderView('main', function() {
+            return console.log('main rendered');
+          });
+        } else {
+          return $.when(renderView('login', $.get('/lib/jquery.md5.js'))).done(function() {
+            return handleLogin();
+          });
+        }
+      });
+    });
+  });
   renderView = function(view) {
     return $.Deferred(function() {
-      return $.when($.get('/views/' + view + '.js').done(__bind(function() {
-        $('#main').html(templates[view]());
-        return this.resolve();
+      return $.when($.get('/lib/views/' + view + '.js').done(__bind(function() {
+        return $(document).ready(__bind(function() {
+          $('#main').html(templates[view]());
+          return this.resolve();
+        }, this));
       }, this)));
     }).promise();
   };
@@ -83,22 +101,4 @@
       return false;
     });
   };
-  $(function() {
-    return getSID(function(sid) {
-      ajaxDefault['data']['sid'] = sid;
-      return getConfig('accounts', function(accounts) {
-        return getConfig('logged_in', function(loggedIn) {
-          if (loggedIn || !accounts) {
-            return renderView('main', function() {
-              return console.log('main rendered');
-            });
-          } else {
-            return $.when(renderView('login', $.get('/scripts/jquery.md5.js'))).done(function() {
-              return handleLogin();
-            });
-          }
-        });
-      });
-    });
-  });
 }).call(this);
