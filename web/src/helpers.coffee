@@ -7,18 +7,20 @@ renderView = (view) ->
     .promise()
     
 # get session id from cookie or server
-getSID = (callback) ->
-    if $.cookie('session_id')?
-        callback $.cookie 'session_id'
-    else
-        $.ajax
-            data: $.extend
-                req_type: 'auth'
-                action: 'get_sid'
-                ajaxDefault['data']
-            success: (json) ->
-                $.cookie 'session_id', json['sid']
-                callback json['sid']
+getSID = ->
+    $.Deferred ->
+        if $.cookie('session_id')?
+            this.resolve($.cookie('session_id'))
+        else
+            $.ajax
+                data: $.extend
+                    req_type: 'auth'
+                    action: 'get_sid'
+                    ajaxDefault['data']
+                success: (json) =>
+                    $.cookie 'session_id', json['sid']
+                    this.resolve(json['sid'])
+    .promise()
 
 # get config key from cookie or server    
 getConfig = (key, callback) ->

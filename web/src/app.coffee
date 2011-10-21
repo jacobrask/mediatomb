@@ -5,7 +5,7 @@ ajaxDefault =
 $.ajaxSetup
     url: '/content/interface'
 
-getSID (sid) ->
+$.when(getSID).done (sid) ->
     ajaxDefault['data']['sid'] = sid
     getConfig 'accounts', (accounts) ->
         getConfig 'logged_in', (loggedIn) ->

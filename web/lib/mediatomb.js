@@ -1,30 +1,6 @@
 (function() {
   var ajaxDefault, getConfig, getSID, handleLogin, renderView;
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
-  ajaxDefault = {
-    data: {
-      return_type: 'json'
-    }
-  };
-  $.ajaxSetup({
-    url: '/content/interface'
-  });
-  getSID(function(sid) {
-    ajaxDefault['data']['sid'] = sid;
-    return getConfig('accounts', function(accounts) {
-      return getConfig('logged_in', function(loggedIn) {
-        if (loggedIn || !accounts) {
-          return renderView('main', function() {
-            return console.log('main rendered');
-          });
-        } else {
-          return $.when(renderView('login', $.get('/lib/jquery.md5.js'))).done(function() {
-            return handleLogin();
-          });
-        }
-      });
-    });
-  });
   renderView = function(view) {
     return $.Deferred(function() {
       return $.when($.get('/lib/views/' + view + '.js').done(__bind(function() {
@@ -35,21 +11,23 @@
       }, this)));
     }).promise();
   };
-  getSID = function(callback) {
-    if ($.cookie('session_id') != null) {
-      return callback($.cookie('session_id'));
-    } else {
-      return $.ajax({
-        data: $.extend({
-          req_type: 'auth',
-          action: 'get_sid'
-        }, ajaxDefault['data']),
-        success: function(json) {
-          $.cookie('session_id', json['sid']);
-          return callback(json['sid']);
-        }
-      });
-    }
+  getSID = function() {
+    return $.Deferred(function() {
+      if ($.cookie('session_id') != null) {
+        return this.resolve($.cookie('session_id'));
+      } else {
+        return $.ajax({
+          data: $.extend({
+            req_type: 'auth',
+            action: 'get_sid'
+          }, ajaxDefault['data']),
+          success: __bind(function(json) {
+            $.cookie('session_id', json['sid']);
+            return this.resolve(json['sid']);
+          }, this)
+        });
+      }
+    }).promise();
   };
   getConfig = function(key, callback) {
     var config;
@@ -101,4 +79,28 @@
       return false;
     });
   };
+  ajaxDefault = {
+    data: {
+      return_type: 'json'
+    }
+  };
+  $.ajaxSetup({
+    url: '/content/interface'
+  });
+  $.when(getSID).done(function(sid) {
+    ajaxDefault['data']['sid'] = sid;
+    return getConfig('accounts', function(accounts) {
+      return getConfig('logged_in', function(loggedIn) {
+        if (loggedIn || !accounts) {
+          return renderView('main', function() {
+            return console.log('main rendered');
+          });
+        } else {
+          return $.when(renderView('login', $.get('/lib/jquery.md5.js'))).done(function() {
+            return handleLogin();
+          });
+        }
+      });
+    });
+  });
 }).call(this);
