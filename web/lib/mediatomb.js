@@ -36,12 +36,12 @@
       }
     }).promise();
   };
-  getConfig = function(key) {
+  getConfig = function() {
     return $.Deferred(function() {
       var config;
       if ($.cookie('config') != null) {
         config = JSON.parse($.cookie('config'));
-        return this.resolve(config[key]);
+        return this.resolve(config);
       } else {
         return $.ajax({
           data: $.extend({
@@ -51,7 +51,7 @@
         }).done(__bind(function(json) {
           config = json['config'];
           $.cookie('config', JSON.stringify(config));
-          return this.resolve(config[key]);
+          return this.resolve(config);
         }, this));
       }
     }).promise();
@@ -91,18 +91,16 @@
   };
   $.when(getSID()).done(function(sid) {
     ajaxDefaults['data']['sid'] = sid;
-    return $.when(getConfig('accounts')).done(function(accounts) {
-      return $.when(getConfig('logged_in')).done(function(loggedIn) {
-        if (loggedIn || !accounts) {
-          return renderView('main', function() {
-            return console.log('main rendered');
-          });
-        } else {
-          return $.when(renderView('login', $.get('/lib/jquery.md5.js'))).done(function() {
-            return handleLogin();
-          });
-        }
-      });
+    return $.when(getConfig()).done(function(config) {
+      if ((config['logged_in'] != null) || !config['accounts']) {
+        return renderView('main', function() {
+          return console.log('main rendered');
+        });
+      } else {
+        return $.when(renderView('login', $.get('/lib/jquery.md5.js'))).done(function() {
+          return handleLogin();
+        });
+      }
     });
   });
 }).call(this);

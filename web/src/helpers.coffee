@@ -29,12 +29,12 @@ getSID = ->
                 this.resolve(json['sid'])
     .promise()
 
-# get config key from cookie or server    
-getConfig = (key) ->
+# get config object from cookie or server    
+getConfig = ->
     $.Deferred ->
         if $.cookie('config')?
             config = JSON.parse $.cookie 'config'
-            this.resolve(config[key])
+            this.resolve(config)
         else
             $.ajax(
                 data: $.extend
@@ -44,7 +44,7 @@ getConfig = (key) ->
             ).done (json) =>
                 config = json['config']
                 $.cookie 'config', JSON.stringify config
-                this.resolve(config[key])
+                this.resolve(config)
     .promise()
 
 handleLogin = ->
