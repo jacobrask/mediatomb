@@ -3,7 +3,6 @@ $.when(getSID()).done (sid) ->
     ajaxDefaults['data']['sid'] = sid
     # then decide whether to show login or ui
     $.when(getConfig()).done (config) ->
-        console.log config
         if config['logged_in']? or !config['accounts']
              $.when(renderView 'main').done ->
                 addMainHandlers()
@@ -29,6 +28,7 @@ showMsg = ($container, text) ->
 
 addLoginHandlers = ->
     $('#login').submit ->
+        # fetch authentication token
         $.ajax(
             data: $.extend
                 req_type: 'auth'
@@ -39,6 +39,7 @@ addLoginHandlers = ->
             username = $('#username').val()
             password = $('#password').val()
             passwordMd5 = $.md5(token + password)
+            # try to login
             $.ajax(
                 data: $.extend
                     req_type: 'auth'
@@ -53,3 +54,5 @@ addLoginHandlers = ->
                     showMsg($(this).children(':first'), json['error']['text'])
         false
 
+addMainHandlers = ->
+    console.log 'abc'

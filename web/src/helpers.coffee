@@ -4,6 +4,23 @@ ajaxDefaults =
         return_type: 'json'
 $.ajaxSetup
     url: '/content/interface'
+    success: (data) ->
+        errorCheck(data)
+
+errorCheck = (data) ->
+    if data['error']
+        # server returns a 3 character code, we only need 1st
+        code = Math.floor(data['error']['code'] / 100)
+        # session error, reset session cookie and reload
+        if code is 4
+            $.cookie('session_id', null)
+            location.reload(false)
+        # ui disabled
+        else if code is 9
+            renderView 'disabled'
+        # any error except 'not found'
+        else if code is not 2
+            console.log data['error']['text']
 
 renderView = (view) ->
     $.Deferred ->

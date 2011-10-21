@@ -1,5 +1,5 @@
 (function() {
-  var addLoginHandlers, ajaxDefaults, getConfig, getSID, renderView, showMsg, views;
+  var addLoginHandlers, addMainHandlers, ajaxDefaults, errorCheck, getConfig, getSID, renderView, showMsg, views;
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   ajaxDefaults = {
     data: {
@@ -7,8 +7,26 @@
     }
   };
   $.ajaxSetup({
-    url: '/content/interface'
+    url: '/content/interface',
+    success: function(data) {
+      return errorCheck(data);
+    }
   });
+  errorCheck = function(data) {
+    var code;
+    if (data['error']) {
+      console.log(data['error']['code']);
+      code = Math.floor(data['error']['code'] / 100);
+      if (code === 4) {
+        $.cookie('session_id', null);
+        return location.reload(false);
+      } else if (code === 9) {
+        return renderView('disabled');
+      } else if (code === !2) {
+        return console.log(data['error']['text']);
+      }
+    }
+  };
   renderView = function(view) {
     return $.Deferred(function() {
       return $(document).ready(__bind(function() {
@@ -90,7 +108,6 @@
   $.when(getSID()).done(function(sid) {
     ajaxDefaults['data']['sid'] = sid;
     return $.when(getConfig()).done(function(config) {
-      console.log(config);
       if ((config['logged_in'] != null) || !config['accounts']) {
         return $.when(renderView('main')).done(function() {
           return addMainHandlers();
@@ -141,5 +158,8 @@
       }, this));
       return false;
     });
+  };
+  addMainHandlers = function() {
+    return console.log('abc');
   };
 }).call(this);
