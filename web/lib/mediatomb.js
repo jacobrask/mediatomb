@@ -1,5 +1,5 @@
 (function() {
-  var ajaxDefaults, getConfig, getSID, handleLogin, renderView;
+  var ajaxDefaults, getConfig, getSID, handleLogin, renderView, showMsg;
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   ajaxDefaults = {
     data: {
@@ -56,37 +56,44 @@
       }
     }).promise();
   };
+  showMsg = function($container, text) {
+    var $msgTag;
+    $msgTag = $('<p>').text(text).addClass('msg');
+    if ($container.find('.msg').length > 0) {
+      return $container.find('.msg').replaceWith($msgTag);
+    } else {
+      return $container.prepend($msgTag);
+    }
+  };
   handleLogin = function() {
-    return $(document).ready(function() {
-      return $('#login').submit(function() {
-        $.ajax({
+    return $('#login').submit(function() {
+      $.ajax({
+        data: $.extend({
+          req_type: 'auth',
+          action: 'get_token'
+        }, ajaxDefaults['data'])
+      }).done(__bind(function(json) {
+        var password, passwordMd5, token, username;
+        token = json['token'];
+        username = $('#username').val();
+        password = $('#password').val();
+        passwordMd5 = $.md5(token + password);
+        return $.ajax({
           data: $.extend({
             req_type: 'auth',
-            action: 'get_token'
+            action: 'login',
+            username: username,
+            password: passwordMd5
           }, ajaxDefaults['data'])
-        }).done(function(json) {
-          var password, passwordMd5, token, username;
-          token = json['token'];
-          username = $('#username').val();
-          password = $('#password').val();
-          passwordMd5 = $.md5(token + password);
-          return $.ajax({
-            data: $.extend({
-              req_type: 'auth',
-              action: 'login',
-              username: username,
-              password: passwordMd5
-            }, ajaxDefaults['data'])
-          }).done(function(json) {
-            var error;
-            error = json['error'];
-            if (error) {
-              return console.log(error['text']);
-            }
-          });
-        });
-        return false;
-      });
+        }).done(__bind(function(json) {
+          if (json['success']) {
+            return showMsg($(this).children(':first'), 'logged in');
+          } else {
+            return showMsg($(this).children(':first'), json['error']['text']);
+          }
+        }, this));
+      }, this));
+      return false;
     });
   };
   $.when(getSID()).done(function(sid) {

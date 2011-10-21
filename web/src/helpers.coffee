@@ -47,28 +47,41 @@ getConfig = ->
                 this.resolve(config)
     .promise()
 
+# prepend a message paragraph containing <text> to <$container>
+showMsg = ($container, text) ->
+    $msgTag =
+        $('<p>')
+            .text(text)
+            .addClass('msg')
+    if $container.find('.msg').length > 0
+        $container
+            .find('.msg')
+            .replaceWith($msgTag)
+    else
+        $container.prepend($msgTag)
+
 handleLogin = ->
-    $(document).ready ->
-        $('#login').submit ->
+    $('#login').submit ->
+        $.ajax(
+            data: $.extend
+                req_type: 'auth'
+                action: 'get_token'
+                ajaxDefaults['data']
+        ).done (json) =>
+            token = json['token']
+            username = $('#username').val()
+            password = $('#password').val()
+            passwordMd5 = $.md5(token + password)
             $.ajax(
                 data: $.extend
                     req_type: 'auth'
-                    action: 'get_token'
+                    action: 'login'
+                    username: username
+                    password: passwordMd5
                     ajaxDefaults['data']
-            ).done (json) ->
-                token = json['token']
-                username = $('#username').val()
-                password = $('#password').val()
-                passwordMd5 = $.md5(token + password)
-                $.ajax(
-                    data: $.extend
-                        req_type: 'auth'
-                        action: 'login'
-                        username: username
-                        password: passwordMd5
-                        ajaxDefaults['data']
-                ).done (json) ->
-                    error = json['error']
-                    if error
-                        console.log error['text']
-            false
+            ).done (json) =>
+                if json['success']
+                    showMsg($(this).children(':first'), 'logged in')
+                else
+                    showMsg($(this).children(':first'), json['error']['text'])
+        false
