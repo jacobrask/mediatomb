@@ -3,12 +3,12 @@
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   renderView = function(view) {
     return $.Deferred(function() {
-      return $.when($.get('/lib/views/' + view + '.js').done(__bind(function() {
+      return $.get('/lib/views/' + view + '.js').done(__bind(function() {
         return $(document).ready(__bind(function() {
           $('#main').html(templates[view]());
           return this.resolve();
         }, this));
-      }, this)));
+      }, this));
     }).promise();
   };
   getSID = function() {
@@ -20,12 +20,11 @@
           data: $.extend({
             req_type: 'auth',
             action: 'get_sid'
-          }, ajaxDefault['data']),
-          success: __bind(function(json) {
-            $.cookie('session_id', json['sid']);
-            return this.resolve(json['sid']);
-          }, this)
-        });
+          }, ajaxDefault['data'])
+        }).done(__bind(function(json) {
+          $.cookie('session_id', json['sid']);
+          return this.resolve(json['sid']);
+        }, this));
       }
     }).promise();
   };
@@ -39,13 +38,11 @@
         data: $.extend({
           req_type: 'auth',
           action: 'get_config'
-        }, ajaxDefault['data']),
-        data: data,
-        success: function(json) {
-          config = json['config'];
-          $.cookie('config', JSON.stringify(config));
-          return callback(config[key]);
-        }
+        }, ajaxDefault['data'])
+      }).done(function(json) {
+        config = json['config'];
+        $.cookie('config', JSON.stringify(config));
+        return callback(config[key]);
       });
     }
   };
@@ -55,26 +52,23 @@
         data: $.extend({
           req_type: 'auth',
           action: 'get_token'
-        }, ajaxDefault['data']),
-        success: function(json) {
-          var data, password, passwordMd5, token, username;
-          token = json['token'];
-          username = $('#username').val();
-          password = $('#password').val();
-          passwordMd5 = $.md5(token + password);
-          data = $.extend({
+        }, ajaxDefault['data'])
+      }).done(function(json) {
+        var password, passwordMd5, token, username;
+        token = json['token'];
+        username = $('#username').val();
+        password = $('#password').val();
+        passwordMd5 = $.md5(token + password);
+        return $.ajax({
+          data: $.extend({
             req_type: 'auth',
             action: 'login',
             username: username,
             password: passwordMd5
-          }, ajaxDefault['data']);
-          return $.ajax({
-            data: data,
-            success: function(json) {
-              return console.log(json);
-            }
-          });
-        }
+          }, ajaxDefault['data'])
+        }).done(function(json) {
+          return console.log(json);
+        });
       });
       return false;
     });
