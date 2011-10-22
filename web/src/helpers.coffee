@@ -11,12 +11,12 @@ ajaxMT = (ajaxData) ->
         ).done((data) =>
             error = hasError(data)
             if error
-                this.reject(error)
+                @reject(error)
             else
-                this.resolve(data)
+                @resolve(data)
         ).fail( =>
             renderView('error', { msg: 'The MediaTomb server cannot be reached. Please make sure it is running.' })
-            this.reject()
+            @reject()
         )
     .promise()
 
@@ -43,21 +43,21 @@ renderView = (view, data) ->
     $.Deferred ->
         $(document).ready =>
             $('#main').html CoffeeKup.render(views[view], data)
-            this.resolve()
+            @resolve()
     .promise()
     
 # get session id from cookie or server
 getSID = ->
     $.Deferred ->
         if $.cookie('session_id')?
-            this.resolve($.cookie('session_id'))
+            @resolve($.cookie('session_id'))
         else
             ajaxMT(
                 req_type: 'auth'
                 action: 'get_sid'
             ).done (json) =>
                 $.cookie 'session_id', json['sid']
-                this.resolve(json['sid'])
+                @resolve(json['sid'])
     .promise()
 
 # get config object from cookie or server    
@@ -65,7 +65,7 @@ getConfig = ->
     $.Deferred ->
         if $.cookie('config')?
             config = JSON.parse $.cookie 'config'
-            this.resolve(config)
+            @resolve(config)
         else
             ajaxMT(
                 req_type: 'auth'
@@ -73,5 +73,5 @@ getConfig = ->
             ).done (json) =>
                 config = json['config']
                 $.cookie 'config', JSON.stringify config
-                this.resolve(config)
+                @resolve(config)
     .promise()
