@@ -29,24 +29,20 @@ showMsg = ($container, text) ->
 addLoginHandlers = ->
     $('#login').submit ->
         # fetch authentication token
-        $.ajax(
-            data: $.extend
-                req_type: 'auth'
-                action: 'get_token'
-                ajaxDefaults['data']
+        ajaxMT(
+            req_type: 'auth'
+            action: 'get_token'
         ).done (json) =>
             token = json['token']
             username = $('#username').val()
             password = $('#password').val()
             passwordMd5 = $.md5(token + password)
             # try to login
-            $.ajax(
-                data: $.extend
-                    req_type: 'auth'
-                    action: 'login'
-                    username: username
-                    password: passwordMd5
-                    ajaxDefaults['data']
+            ajaxMT(
+                req_type: 'auth'
+                action: 'login'
+                username: username
+                password: passwordMd5
             ).done (json) =>
                 if json['success']
                     renderView 'main'

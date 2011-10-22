@@ -1,30 +1,41 @@
 (function() {
-  var addLoginHandlers, addMainHandlers, ajaxDefaults, errorCheck, getConfig, getSID, renderView, showMsg, views;
+  var addLoginHandlers, addMainHandlers, ajaxDefaults, ajaxMT, getConfig, getSID, hasError, renderView, showMsg, views;
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   ajaxDefaults = {
     data: {
       return_type: 'json'
     }
   };
-  $.ajaxSetup({
-    url: '/content/interface',
-    success: function(data) {
-      return errorCheck(data);
-    }
-  });
-  errorCheck = function(data) {
+  ajaxMT = function(ajaxData) {
+    return $.Deferred(function() {
+      return $.ajax({
+        url: '/content/interface',
+        data: $.extend(ajaxData, ajaxDefaults['data'])
+      }).done(__bind(function(data) {
+        var error;
+        error = hasError(data);
+        if (error) {
+          return this.reject(error);
+        } else {
+          return this.resolve(data);
+        }
+      }, this));
+    }).promise();
+  };
+  hasError = function(data) {
     var code;
     if (data['error']) {
-      console.log(data['error']['code']);
       code = Math.floor(data['error']['code'] / 100);
       if (code === 4) {
         $.cookie('session_id', null);
-        return location.reload(false);
+        return $.when(renderView('login')).done(showMsg($('#login fieldset'), data['error']['text']));
       } else if (code === 9) {
         return renderView('disabled');
       } else if (code === !2) {
-        return console.log(data['error']['text']);
+        return data['error']['text'];
       }
+    } else {
+      return false;
     }
   };
   renderView = function(view) {
@@ -40,11 +51,9 @@
       if ($.cookie('session_id') != null) {
         return this.resolve($.cookie('session_id'));
       } else {
-        return $.ajax({
-          data: $.extend({
-            req_type: 'auth',
-            action: 'get_sid'
-          }, ajaxDefaults['data'])
+        return ajaxMT({
+          req_type: 'auth',
+          action: 'get_sid'
         }).done(__bind(function(json) {
           $.cookie('session_id', json['sid']);
           return this.resolve(json['sid']);
@@ -59,11 +68,9 @@
         config = JSON.parse($.cookie('config'));
         return this.resolve(config);
       } else {
-        return $.ajax({
-          data: $.extend({
-            req_type: 'auth',
-            action: 'get_config'
-          }, ajaxDefaults['data'])
+        return ajaxMT({
+          req_type: 'auth',
+          action: 'get_config'
         }).done(__bind(function(json) {
           config = json['config'];
           $.cookie('config', JSON.stringify(config));
@@ -105,6 +112,15 @@
       href: '#'
     }, 'Files');
   };
+  views['disabled'] = function() {
+    return p('The MediaTomb UI has been disabled in the server configuration.');
+  };
+  views['session_error'] = function() {
+    p('Your session has expired or is invalid.');
+    return a({
+      href: '/'
+    }, 'Login');
+  };
   $.when(getSID()).done(function(sid) {
     ajaxDefaults['data']['sid'] = sid;
     return $.when(getConfig()).done(function(config) {
@@ -130,24 +146,20 @@
   };
   addLoginHandlers = function() {
     return $('#login').submit(function() {
-      $.ajax({
-        data: $.extend({
-          req_type: 'auth',
-          action: 'get_token'
-        }, ajaxDefaults['data'])
+      ajaxMT({
+        req_type: 'auth',
+        action: 'get_token'
       }).done(__bind(function(json) {
         var password, passwordMd5, token, username;
         token = json['token'];
         username = $('#username').val();
         password = $('#password').val();
         passwordMd5 = $.md5(token + password);
-        return $.ajax({
-          data: $.extend({
-            req_type: 'auth',
-            action: 'login',
-            username: username,
-            password: passwordMd5
-          }, ajaxDefaults['data'])
+        return ajaxMT({
+          req_type: 'auth',
+          action: 'login',
+          username: username,
+          password: passwordMd5
         }).done(__bind(function(json) {
           if (json['success']) {
             return renderView('main');

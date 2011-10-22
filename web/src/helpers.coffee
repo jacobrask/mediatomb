@@ -2,25 +2,38 @@
 ajaxDefaults =
     data:
         return_type: 'json'
-$.ajaxSetup
-    url: '/content/interface'
-    success: (data) ->
-        errorCheck(data)
 
-errorCheck = (data) ->
+ajaxMT = (ajaxData) ->
+    $.Deferred ->
+        $.ajax(
+            url: '/content/interface'
+            data: $.extend(ajaxData, ajaxDefaults['data'])
+        ).done (data) =>
+            error = hasError(data)
+            if error
+                this.reject(error)
+            else
+                this.resolve(data)
+    .promise()
+
+hasError = (data) ->
     if data['error']
         # server returns a 3 character code, we only need 1st
         code = Math.floor(data['error']['code'] / 100)
-        # session error, reset session cookie and reload
+        # session error, fatal
         if code is 4
             $.cookie('session_id', null)
-            location.reload(false)
-        # ui disabled
+            $.when(renderView('login')).done(
+                showMsg($('#login fieldset'), data['error']['text'])
+            )
+        # ui disabled, fatal
         else if code is 9
             renderView 'disabled'
-        # any error except 'not found'
+        # pass any other error except 'not found' to ajax success handler
         else if code is not 2
-            console.log data['error']['text']
+            return data['error']['text']
+    else
+        return false
 
 renderView = (view) ->
     $.Deferred ->
@@ -35,11 +48,9 @@ getSID = ->
         if $.cookie('session_id')?
             this.resolve($.cookie('session_id'))
         else
-            $.ajax(
-                data: $.extend
-                    req_type: 'auth'
-                    action: 'get_sid'
-                    ajaxDefaults['data']
+            ajaxMT(
+                req_type: 'auth'
+                action: 'get_sid'
             ).done (json) =>
                 $.cookie 'session_id', json['sid']
                 this.resolve(json['sid'])
@@ -52,11 +63,9 @@ getConfig = ->
             config = JSON.parse $.cookie 'config'
             this.resolve(config)
         else
-            $.ajax(
-                data: $.extend
-                    req_type: 'auth'
-                    action: 'get_config'
-                    ajaxDefaults['data']
+            ajaxMT(
+                req_type: 'auth'
+                action: 'get_config'
             ).done (json) =>
                 config = json['config']
                 $.cookie 'config', JSON.stringify config
