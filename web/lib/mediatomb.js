@@ -19,6 +19,11 @@
         } else {
           return this.resolve(data);
         }
+      }, this)).fail(__bind(function() {
+        renderView('error', {
+          msg: 'The MediaTomb server cannot be reached. Please make sure it is running.'
+        });
+        return this.reject();
       }, this));
     }).promise();
   };
@@ -30,7 +35,9 @@
         $.cookie('session_id', null);
         return $.when(renderView('login')).done(showMsg($('#login fieldset'), data['error']['text']));
       } else if (code === 9) {
-        return renderView('disabled');
+        return renderView('error', {
+          msg: 'The MediaTomb UI has been disabled in the server configuration.'
+        });
       } else if (code === !2) {
         return data['error']['text'];
       }
@@ -38,10 +45,10 @@
       return false;
     }
   };
-  renderView = function(view) {
+  renderView = function(view, data) {
     return $.Deferred(function() {
       return $(document).ready(__bind(function() {
-        $('#main').html(CoffeeKup.render(views[view]));
+        $('#main').html(CoffeeKup.render(views[view], data));
         return this.resolve();
       }, this));
     }).promise();
@@ -104,22 +111,8 @@
       });
     });
   };
-  views['main'] = function() {
-    a({
-      href: '#'
-    }, 'MediaTomb');
-    return a({
-      href: '#'
-    }, 'Files');
-  };
-  views['disabled'] = function() {
-    return p('The MediaTomb UI has been disabled in the server configuration.');
-  };
-  views['session_error'] = function() {
-    p('Your session has expired or is invalid.');
-    return a({
-      href: '/'
-    }, 'Login');
+  views['error'] = function() {
+    return p(this.msg);
   };
   $.when(getSID()).done(function(sid) {
     ajaxDefaults['data']['sid'] = sid;

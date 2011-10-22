@@ -8,12 +8,16 @@ ajaxMT = (ajaxData) ->
         $.ajax(
             url: '/content/interface'
             data: $.extend(ajaxData, ajaxDefaults['data'])
-        ).done (data) =>
+        ).done((data) =>
             error = hasError(data)
             if error
                 this.reject(error)
             else
                 this.resolve(data)
+        ).fail( =>
+            renderView('error', { msg: 'The MediaTomb server cannot be reached. Please make sure it is running.' })
+            this.reject()
+        )
     .promise()
 
 hasError = (data) ->
@@ -28,17 +32,17 @@ hasError = (data) ->
             )
         # ui disabled, fatal
         else if code is 9
-            renderView 'disabled'
+            renderView('error', { msg: 'The MediaTomb UI has been disabled in the server configuration.' })
         # pass any other error except 'not found' to ajax success handler
         else if code is not 2
             return data['error']['text']
     else
         return false
 
-renderView = (view) ->
+renderView = (view, data) ->
     $.Deferred ->
         $(document).ready =>
-            $('#main').html CoffeeKup.render(views[view])
+            $('#main').html CoffeeKup.render(views[view], data)
             this.resolve()
     .promise()
     
