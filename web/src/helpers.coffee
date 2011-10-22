@@ -40,12 +40,12 @@ hasError = (data) ->
         return false
 
 renderView = (view, data) ->
-    $.Deferred ->
-        $(document).ready =>
-            $('#main').html CoffeeKup.render(views[view], data)
-            @resolve()
-    .promise()
-    
+    $(document).ready =>
+        $('#main').html CoffeeKup.render(views[view], data)
+ 
+renderPartial = (partial, data) ->
+    CoffeeKup.render(partials[partial], data)
+   
 # get session id from cookie or server
 getSID = ->
     $.Deferred ->

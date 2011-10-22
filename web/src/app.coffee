@@ -38,13 +38,11 @@ addLoginHandlers = ->
 addMainHandlers = ->
     renderView('main')
     $.when(treeFetchChildren(0)).done (data) ->
-        $('.tree').append CoffeeKup.render(partials['tree'], { containers: data })
+        $('.tree').append(renderPartial('tree', { containers: data }))
     $('.parent').live 'click', ->
         $this = $(@)
-        console.log $this.data('db-id')
         $.when(treeFetchChildren($this.data('db-id'))).done (data) ->
-            console.log data
-            $this.append CoffeeKup.render(partials['tree'], { containers: data })
+            $this.append(renderPartial('tree', { containers: data }))
 
 # first we need a session ID for all future ajax calls
 $.when(getSID()).done (sid) ->
@@ -54,8 +52,6 @@ $.when(getSID()).done (sid) ->
         if config['logged_in']? or !config['accounts']
             addMainHandlers()
         else
-            $.when(
-                renderView 'login',
-                $.get '/lib/jquery.md5.js'
-            ).done ->
+            renderView 'login',
+            $.when($.get '/lib/jquery.md5.js').done ->
                addLoginHandlers()
