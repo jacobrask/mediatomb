@@ -1,6 +1,57 @@
 (function() {
-  var addLoginHandlers, addMainHandlers, ajaxDefaults, ajaxMT, getConfig, getSID, hasError, renderView, showMsg, views;
+  var addLoginHandlers, addMainHandlers, ajaxDefaults, ajaxMT, getConfig, getSID, hasError, partials, renderView, showMsg, treeFetchChildren, views;
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+  views = [];
+  partials = [];
+  views['main'] = function() {
+    nav({
+      "class": 'tree'
+    });
+    return section({
+      "class": 'items'
+    });
+  };
+  views['login'] = function() {
+    return form('#login', function() {
+      return fieldset(function() {
+        legend('Log in');
+        label(function() {
+          text('Username');
+          return input('#username', {
+            type: 'text'
+          });
+        });
+        label(function() {
+          text('Password');
+          return input('#password', {
+            type: 'password'
+          });
+        });
+        return button('Login');
+      });
+    });
+  };
+  views['error'] = function() {
+    return p(this.msg);
+  };
+  partials['tree'] = function() {
+    return ul(function() {
+      var container, _i, _len, _ref, _results;
+      _ref = this.containers;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        container = _ref[_i];
+        _results.push(container.child_count > 0 ? li('.parent', {
+          'data-db-id': container.id
+        }, function() {
+          return text(container.title);
+        }) : li(function() {
+          return text(container.title);
+        }));
+      }
+      return _results;
+    });
+  };
   ajaxDefaults = {
     data: {
       return_type: 'json'
@@ -86,49 +137,20 @@
       }
     }).promise();
   };
-  views = [];
-  views['main'] = function() {
-    var container, _i, _len, _ref, _results;
-    _ref = this.containers;
-    _results = [];
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      container = _ref[_i];
-      _results.push(h2(function() {
-        return a({
-          href: '#'
-        }, function() {
-          return text(container.title);
-        });
-      }));
-    }
-    return _results;
-  };
-  views['login'] = function() {
-    return form({
-      id: 'login'
-    }, function() {
-      return fieldset(function() {
-        legend('Log in');
-        label(function() {
-          text('Username');
-          return input({
-            id: 'username',
-            type: 'text'
-          });
-        });
-        label(function() {
-          text('Password');
-          return input({
-            id: 'password',
-            type: 'password'
-          });
-        });
-        return button('Login');
-      });
-    });
-  };
-  views['error'] = function() {
-    return p(this.msg);
+  treeFetchChildren = function(parentId) {
+    return $.Deferred(function() {
+      return ajaxMT({
+        req_type: 'containers',
+        parent_id: parentId,
+        select_it: 0
+      }).done(__bind(function(json) {
+        var containers;
+        containers = json['containers']['container'];
+        if (containers) {
+          return this.resolve(containers);
+        }
+      }, this));
+    }).promise();
   };
   showMsg = function($container, text) {
     var $msgTag;
@@ -167,13 +189,21 @@
     });
   };
   addMainHandlers = function() {
-    return ajaxMT({
-      req_type: 'containers',
-      parent_id: 0,
-      select_it: 0
-    }).done(function(json) {
-      return renderView('main', {
-        containers: json['containers']['container']
+    renderView('main');
+    $.when(treeFetchChildren(0)).done(function(data) {
+      return $('.tree').append(CoffeeKup.render(partials['tree'], {
+        containers: data
+      }));
+    });
+    return $('.parent').live('click', function() {
+      var $this;
+      $this = $(this);
+      console.log($this.data('db-id'));
+      return $.when(treeFetchChildren($this.data('db-id'))).done(function(data) {
+        console.log(data);
+        return $this.append(CoffeeKup.render(partials['tree'], {
+          containers: data
+        }));
       });
     });
   };

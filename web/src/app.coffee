@@ -36,12 +36,15 @@ addLoginHandlers = ->
         false
 
 addMainHandlers = ->
-    ajaxMT(
-        req_type: 'containers'
-        parent_id: 0
-        select_it: 0
-    ).done (json) ->
-        renderView('main', { containers: json['containers']['container'] } )
+    renderView('main')
+    $.when(treeFetchChildren(0)).done (data) ->
+        $('.tree').append CoffeeKup.render(partials['tree'], { containers: data })
+    $('.parent').live 'click', ->
+        $this = $(@)
+        console.log $this.data('db-id')
+        $.when(treeFetchChildren($this.data('db-id'))).done (data) ->
+            console.log data
+            $this.append CoffeeKup.render(partials['tree'], { containers: data })
 
 # first we need a session ID for all future ajax calls
 $.when(getSID()).done (sid) ->

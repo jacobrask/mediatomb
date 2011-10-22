@@ -75,3 +75,15 @@ getConfig = ->
                 $.cookie 'config', JSON.stringify config
                 @resolve(config)
     .promise()
+
+treeFetchChildren = (parentId) ->
+    $.Deferred ->
+        ajaxMT(
+            req_type: 'containers'
+            parent_id: parentId
+            select_it: 0
+        ).done (json) =>
+            containers = json['containers']['container']
+            if containers
+                @resolve(containers)
+    .promise()

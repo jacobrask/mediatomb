@@ -1,22 +1,31 @@
 views = []
+partials = []
 
 views['main'] = ->
-    for container in @containers
-        h2 ->
-            a href: '#', ->
-                text container.title
+    nav class: 'tree'
+    section class: 'items'
 
 views['login'] = ->
-    form id: 'login', ->
+    form '#login', ->
         fieldset ->
             legend 'Log in'
             label ->
                 text 'Username'
-                input id: 'username', type: 'text'
+                input '#username', type: 'text'
             label ->
                 text 'Password'
-                input id: 'password', type: 'password'
+                input '#password', type: 'password'
             button 'Login'
 
 views['error'] = ->
     p @msg
+
+partials['tree'] = ->
+    ul ->
+        for container in @containers
+            if container.child_count > 0
+                li '.parent', 'data-db-id': container.id, ->
+                    text container.title
+            else
+                li ->
+                    text container.title
