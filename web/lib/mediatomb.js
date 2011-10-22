@@ -87,6 +87,22 @@
     }).promise();
   };
   views = [];
+  views['main'] = function() {
+    var container, _i, _len, _ref, _results;
+    _ref = this.containers;
+    _results = [];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      container = _ref[_i];
+      _results.push(h2(function() {
+        return a({
+          href: '#'
+        }, function() {
+          return text(container.title);
+        });
+      }));
+    }
+    return _results;
+  };
   views['login'] = function() {
     return form({
       id: 'login'
@@ -114,20 +130,6 @@
   views['error'] = function() {
     return p(this.msg);
   };
-  $.when(getSID()).done(function(sid) {
-    ajaxDefaults['data']['sid'] = sid;
-    return $.when(getConfig()).done(function(config) {
-      if ((config['logged_in'] != null) || !config['accounts']) {
-        return $.when(renderView('main')).done(function() {
-          return addMainHandlers();
-        });
-      } else {
-        return $.when(renderView('login', $.get('/lib/jquery.md5.js'))).done(function() {
-          return addLoginHandlers();
-        });
-      }
-    });
-  });
   showMsg = function($container, text) {
     var $msgTag;
     $msgTag = $('<p>').text(text).addClass('msg');
@@ -155,7 +157,7 @@
           password: passwordMd5
         }).done(__bind(function(json) {
           if (json['success']) {
-            return renderView('main');
+            return addMainHandlers();
           } else {
             return showMsg($(this).children(':first'), json['error']['text']);
           }
@@ -165,6 +167,26 @@
     });
   };
   addMainHandlers = function() {
-    return console.log('abc');
+    return ajaxMT({
+      req_type: 'containers',
+      parent_id: 0,
+      select_it: 0
+    }).done(function(json) {
+      return renderView('main', {
+        containers: json['containers']['container']
+      });
+    });
   };
+  $.when(getSID()).done(function(sid) {
+    ajaxDefaults['data']['sid'] = sid;
+    return $.when(getConfig()).done(function(config) {
+      if ((config['logged_in'] != null) || !config['accounts']) {
+        return addMainHandlers();
+      } else {
+        return $.when(renderView('login', $.get('/lib/jquery.md5.js'))).done(function() {
+          return addLoginHandlers();
+        });
+      }
+    });
+  });
 }).call(this);

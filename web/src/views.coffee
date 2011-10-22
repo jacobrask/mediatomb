@@ -1,5 +1,11 @@
 views = []
 
+views['main'] = ->
+    for container in @containers
+        h2 ->
+            a href: '#', ->
+                text container.title
+
 views['login'] = ->
     form id: 'login', ->
         fieldset ->
