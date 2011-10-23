@@ -33,7 +33,17 @@
       code = Math.floor(data['error']['code'] / 100);
       if (code === 4) {
         $.cookie('session_id', null);
-        return $.when(renderView('login')).done(showMsg($('#login fieldset'), data['error']['text']));
+        $.cookie('config', null);
+        return $.when(getConfig()).done(function(config) {
+          if ((config['logged_in'] != null) || !config['accounts']) {
+            return $.when(getSID()).done(function(sid) {
+              return ajaxDefaults['data']['sid'] = sid;
+            });
+          } else {
+            renderView('login');
+            return showMsg($('#login fieldset'), data['error']['text']);
+          }
+        });
       } else if (code === 9) {
         return renderView('error', {
           msg: 'The MediaTomb UI has been disabled in the server configuration.'
@@ -87,6 +97,7 @@
     }).promise();
   };
   treeFetchChildren = function(parentId) {
+    console.log(parentId);
     return $.Deferred(function() {
       return ajaxMT({
         req_type: 'containers',
@@ -94,6 +105,7 @@
         select_it: 0
       }).done(__bind(function(json) {
         var containers;
+        console.log(json);
         containers = json['containers']['container'];
         if (containers) {
           return this.resolve(containers);
@@ -101,8 +113,7 @@
       }, this));
     }).promise();
   };
-  views = [];
-  partials = [];
+  views = partials = {};
   views['main'] = function() {
     nav({
       "class": 'tree'
@@ -144,7 +155,11 @@
         _results.push(container.child_count > 0 ? li('.parent', {
           'data-db-id': container.id
         }, function() {
-          return text(container.title);
+          return a({
+            href: '#'
+          }, function() {
+            return text(container.title);
+          });
         }) : li(function() {
           return text(container.title);
         }));
@@ -195,11 +210,12 @@
         containers: data
       }));
     });
-    return $('.parent').live('click', function() {
-      var $this;
-      $this = $(this);
-      return $.when(treeFetchChildren($this.data('db-id'))).done(function(data) {
-        return $this.append(renderPartial('tree', {
+    return $('.parent a').live('click', function(ev) {
+      var $li;
+      $li = $(this).parent();
+      ev.preventDefault();
+      return $.when(treeFetchChildren($li.data('db-id'))).done(function(data) {
+        return $li.append(renderPartial('tree', {
           containers: data
         }));
       });

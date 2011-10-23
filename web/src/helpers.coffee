@@ -27,9 +27,14 @@ hasError = (data) ->
         # session error, fatal
         if code is 4
             $.cookie('session_id', null)
-            $.when(renderView('login')).done(
-                showMsg($('#login fieldset'), data['error']['text'])
-            )
+            $.cookie('config', null)
+            $.when(getConfig()).done (config) ->
+                if config['logged_in']? or !config['accounts']
+                    $.when(getSID()).done (sid) ->
+                        ajaxDefaults['data']['sid'] = sid
+                else
+                    renderView 'login'
+                    showMsg($('#login fieldset'), data['error']['text'])
         # ui disabled, fatal
         else if code is 9
             renderView('error', { msg: 'The MediaTomb UI has been disabled in the server configuration.' })

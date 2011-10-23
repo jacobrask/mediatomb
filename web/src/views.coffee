@@ -1,5 +1,4 @@
-views = []
-partials = []
+views = partials = {}
 
 views['main'] = ->
     nav class: 'tree'
@@ -25,7 +24,8 @@ partials['tree'] = ->
         for container in @containers
             if container.child_count > 0
                 li '.parent', 'data-db-id': container.id, ->
-                    text container.title
+                    a href: '#', ->
+                        text container.title
             else
                 li ->
                     text container.title
