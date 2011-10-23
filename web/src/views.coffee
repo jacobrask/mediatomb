@@ -20,14 +20,15 @@ views['error'] = ->
     p @msg
 
 partials['tree'] = ->
-    ul ->
-        if @containers
+    if @containers
+        ul '.folders', ->
             for container in @containers
-                li '.folder', 'data-db-id': container.id, ->
+                li 'data-id': container.id, ->
                     a href: '#', ->
                         text container.title
-        else if @items
+    else if @items
+        ul '.items', ->
             for item in @items
-                li '.item', 'data-db-id': item.id, ->
-                    a href: '#', ->
+                li 'data-id': item.id, ->
+                    a href: item.res, ->
                         text item.title

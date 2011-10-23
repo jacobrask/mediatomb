@@ -99,7 +99,7 @@
   treeFetchChildren = function(parentId) {
     return $.Deferred(function() {
       return ajaxMT({
-        req_type: 'containers',
+        req_type: 'directories',
         parent_id: parentId,
         select_it: 0
       }).done(__bind(function(json) {
@@ -163,15 +163,15 @@
     return p(this.msg);
   };
   partials['tree'] = function() {
-    return ul(function() {
-      var container, item, _i, _j, _len, _len2, _ref, _ref2, _results, _results2;
-      if (this.containers) {
+    if (this.containers) {
+      return ul('.folders', function() {
+        var container, _i, _len, _ref, _results;
         _ref = this.containers;
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           container = _ref[_i];
-          _results.push(li('.folder', {
-            'data-db-id': container.id
+          _results.push(li({
+            'data-id': container.id
           }, function() {
             return a({
               href: '#'
@@ -181,24 +181,27 @@
           }));
         }
         return _results;
-      } else if (this.items) {
-        _ref2 = this.items;
-        _results2 = [];
-        for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
-          item = _ref2[_j];
-          _results2.push(li('.item', {
-            'data-db-id': item.id
+      });
+    } else if (this.items) {
+      return ul('.items', function() {
+        var item, _i, _len, _ref, _results;
+        _ref = this.items;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          item = _ref[_i];
+          _results.push(li({
+            'data-id': item.id
           }, function() {
             return a({
-              href: '#'
+              href: item.res
             }, function() {
               return text(item.title);
             });
           }));
         }
-        return _results2;
-      }
-    });
+        return _results;
+      });
+    }
   };
   showMsg = function($container, text) {
     var $msgTag;
@@ -241,13 +244,17 @@
     $.when(treeFetchChildren(0)).done(function(data) {
       return $('.tree').append(renderPartial('tree', data));
     });
-    return $('.folder a').live('click', function(ev) {
+    return $('.folders > li > a').live('click', function(ev) {
       var $li;
-      $li = $(this).parent();
       ev.preventDefault();
-      return $.when(treeFetchChildren($li.data('db-id'))).done(function(data) {
-        return $li.append(renderPartial('tree', data));
-      });
+      $li = $(this).parent();
+      if ($li.has('ul').length > 0) {
+        return $li.children('ul').remove();
+      } else {
+        return $.when(treeFetchChildren($li.data('id'))).done(function(data) {
+          return $li.append(renderPartial('tree', data));
+        });
+      }
     });
   };
   $.when(getSID()).done(function(sid) {

@@ -39,11 +39,15 @@ addMainHandlers = ->
     renderView('main')
     $.when(treeFetchChildren(0)).done (data) ->
         $('.tree').append(renderPartial('tree', data))
-    $('.folder a').live 'click', (ev) ->
-        $li = $(@).parent()
+
+    $('.folders > li > a').live 'click', (ev) ->
         ev.preventDefault()
-        $.when(treeFetchChildren($li.data('db-id'))).done (data) ->
-            $li.append(renderPartial('tree', data))
+        $li = $(@).parent()
+        if $li.has('ul').length > 0
+            $li.children('ul').remove()
+        else
+            $.when(treeFetchChildren($li.data('id'))).done (data) ->
+                $li.append(renderPartial('tree', data))
 
 # first we need a session ID for all future ajax calls
 $.when(getSID()).done (sid) ->

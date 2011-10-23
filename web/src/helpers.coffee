@@ -84,7 +84,7 @@ getConfig = ->
 treeFetchChildren = (parentId) ->
     $.Deferred ->
         ajaxMT(
-            req_type: 'containers'
+            req_type: 'directories'
             parent_id: parentId
             select_it: 0
         ).done (json) =>
