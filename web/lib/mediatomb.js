@@ -99,34 +99,29 @@
   treeFetchChildren = function(parentId) {
     return $.Deferred(function() {
       return ajaxMT({
-        req_type: 'directories',
+        req_type: 'containers',
         parent_id: parentId,
         select_it: 0
       }).done(__bind(function(json) {
         var containers;
         containers = json['containers']['container'];
-        if (containers.length > 0) {
-          return this.resolve({
-            containers: containers
-          });
-        } else {
-          return ajaxMT({
-            req_type: 'items',
-            parent_id: parentId,
-            start: 0,
-            count: 25
-          }).done(__bind(function(json) {
-            var items;
-            items = json['items']['item'];
-            if (items.length > 0) {
-              return this.resolve({
-                items: items
-              });
-            } else {
-              return this.reject();
-            }
-          }, this));
-        }
+        return ajaxMT({
+          req_type: 'items',
+          parent_id: parentId,
+          start: 0,
+          count: 25
+        }).done(__bind(function(json) {
+          var items;
+          items = json['items']['item'];
+          if (items.length > 0 || containers.length > 0) {
+            return this.resolve({
+              items: items,
+              containers: containers
+            });
+          } else {
+            return this.reject();
+          }
+        }, this));
       }, this));
     }).promise();
   };
@@ -164,7 +159,7 @@
   };
   partials['tree'] = function() {
     if (this.containers) {
-      return ul('.folders', function() {
+      ul('.folders', function() {
         var container, _i, _len, _ref, _results;
         _ref = this.containers;
         _results = [];
@@ -182,7 +177,8 @@
         }
         return _results;
       });
-    } else if (this.items) {
+    }
+    if (this.items) {
       return ul('.items', function() {
         var item, _i, _len, _ref, _results;
         _ref = this.items;
@@ -192,11 +188,15 @@
           _results.push(li({
             'data-id': item.id
           }, function() {
-            return a({
-              href: item.res
-            }, function() {
-              return text(item.title);
-            });
+            if (item.res) {
+              return a({
+                href: item.res
+              }, function() {
+                return text(item.title);
+              });
+            } else {
+              return text(item.filename);
+            }
           }));
         }
         return _results;

@@ -26,9 +26,12 @@ partials['tree'] = ->
                 li 'data-id': container.id, ->
                     a href: '#', ->
                         text container.title
-    else if @items
+    if @items
         ul '.items', ->
             for item in @items
-                li 'data-id': item.id, ->
-                    a href: item.res, ->
-                        text item.title
+                    li 'data-id': item.id, ->
+                        if item.res
+                            a href: item.res, ->
+                                text item.title
+                        else
+                            text item.filename
