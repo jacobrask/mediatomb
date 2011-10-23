@@ -21,11 +21,13 @@ views['error'] = ->
 
 partials['tree'] = ->
     ul ->
-        for container in @containers
-            if container.child_count > 0
-                li '.parent', 'data-db-id': container.id, ->
+        if @containers
+            for container in @containers
+                li '.folder', 'data-db-id': container.id, ->
                     a href: '#', ->
                         text container.title
-            else
-                li ->
-                    text container.title
+        else if @items
+            for item in @items
+                li '.item', 'data-db-id': item.id, ->
+                    a href: '#', ->
+                        text item.title

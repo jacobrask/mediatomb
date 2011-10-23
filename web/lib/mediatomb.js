@@ -97,7 +97,6 @@
     }).promise();
   };
   treeFetchChildren = function(parentId) {
-    console.log(parentId);
     return $.Deferred(function() {
       return ajaxMT({
         req_type: 'containers',
@@ -105,10 +104,28 @@
         select_it: 0
       }).done(__bind(function(json) {
         var containers;
-        console.log(json);
         containers = json['containers']['container'];
-        if (containers) {
-          return this.resolve(containers);
+        if (containers.length > 0) {
+          return this.resolve({
+            containers: containers
+          });
+        } else {
+          return ajaxMT({
+            req_type: 'items',
+            parent_id: parentId,
+            start: 0,
+            count: 25
+          }).done(__bind(function(json) {
+            var items;
+            items = json['items']['item'];
+            if (items.length > 0) {
+              return this.resolve({
+                items: items
+              });
+            } else {
+              return this.reject();
+            }
+          }, this));
         }
       }, this));
     }).promise();
@@ -147,24 +164,40 @@
   };
   partials['tree'] = function() {
     return ul(function() {
-      var container, _i, _len, _ref, _results;
-      _ref = this.containers;
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        container = _ref[_i];
-        _results.push(container.child_count > 0 ? li('.parent', {
-          'data-db-id': container.id
-        }, function() {
-          return a({
-            href: '#'
+      var container, item, _i, _j, _len, _len2, _ref, _ref2, _results, _results2;
+      if (this.containers) {
+        _ref = this.containers;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          container = _ref[_i];
+          _results.push(li('.folder', {
+            'data-db-id': container.id
           }, function() {
-            return text(container.title);
-          });
-        }) : li(function() {
-          return text(container.title);
-        }));
+            return a({
+              href: '#'
+            }, function() {
+              return text(container.title);
+            });
+          }));
+        }
+        return _results;
+      } else if (this.items) {
+        _ref2 = this.items;
+        _results2 = [];
+        for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
+          item = _ref2[_j];
+          _results2.push(li('.item', {
+            'data-db-id': item.id
+          }, function() {
+            return a({
+              href: '#'
+            }, function() {
+              return text(item.title);
+            });
+          }));
+        }
+        return _results2;
       }
-      return _results;
     });
   };
   showMsg = function($container, text) {
@@ -206,18 +239,14 @@
   addMainHandlers = function() {
     renderView('main');
     $.when(treeFetchChildren(0)).done(function(data) {
-      return $('.tree').append(renderPartial('tree', {
-        containers: data
-      }));
+      return $('.tree').append(renderPartial('tree', data));
     });
-    return $('.parent a').live('click', function(ev) {
+    return $('.folder a').live('click', function(ev) {
       var $li;
       $li = $(this).parent();
       ev.preventDefault();
       return $.when(treeFetchChildren($li.data('db-id'))).done(function(data) {
-        return $li.append(renderPartial('tree', {
-          containers: data
-        }));
+        return $li.append(renderPartial('tree', data));
       });
     });
   };

@@ -89,6 +89,18 @@ treeFetchChildren = (parentId) ->
             select_it: 0
         ).done (json) =>
             containers = json['containers']['container']
-            if containers
-                @resolve(containers)
+            if containers.length > 0
+                @resolve({ containers: containers })
+            else
+                ajaxMT(
+                    req_type: 'items'
+                    parent_id: parentId
+                    start: 0
+                    count: 25
+                ).done (json) =>
+                    items = json['items']['item']
+                    if items.length > 0
+                        @resolve({ items: items })
+                    else
+                        @reject()
     .promise()
