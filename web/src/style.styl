@@ -1,3 +1,49 @@
-body {
-    background: #fff;
-}
+@import 'nib'
+vendor-prefixes = webkit moz ms o official
+global-reset()
+
+body
+    background: url(/img/concrete_wall.png)
+    color: #eee
+    font: 14px sans-serif
+    width: 640px
+    margin: 0 auto
+    padding: 10px
+
+h1
+    text-align: center
+    margin: 10px 0
+
+#login
+    margin: 10px 0
+    text-shadow: 1px 1px 1px #000
+    fieldset
+        padding: 5% 15%
+        border: 0
+        border-radius: 15px
+        background: linear-gradient(top, rgba(0, 0, 0, .3), rgba(0, 0, 0, .5))
+        legend
+            display: none
+        button
+            margin: 15px 0 0
+            float: right
+            padding: 1em 2em
+            border: none
+            border-radius: 3px
+            background: #999
+            color: #000
+            font-weight: bold
+            text-transform: uppercase
+            box-shadow: inset -4px -4px 8px rgba(0, 0, 0, .3), inset 1px 1px 2px rgba(255, 255, 255, .5)
+        label
+            display: block
+            width: 100%
+            margin: 15px 0 0
+            input
+                width: 100%
+                box-sizing: border-box
+                padding: .5em
+                display: block
+                border: 1px solid rgba(0, 0, 0, .4)
+                border-radius: 3px
+                box-shadow: inset 4px 4px 6px rgba(0, 0, 0, .3)
