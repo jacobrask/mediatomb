@@ -102,17 +102,25 @@ h1 {
   text-align: center;
   margin: 10px 0;
 }
+.loading {
+  text-align: center;
+  background: rgba(0,0,0,0.50) url("/img/loading.gif") 50% 70% no-repeat;
+  padding: 5% 15% 10%;
+}
+.loading,
+#login fieldset {
+  -webkit-border-radius: 15px;
+  -moz-border-radius: 15px;
+  -o-border-radius: 15px;
+  border-radius: 15px;
+}
 #login {
   margin: 10px 0;
   text-shadow: 1px 1px 1px #000;
 }
 #login fieldset {
-  padding: 5% 15%;
   border: 0;
-  -webkit-border-radius: 15px;
-  -moz-border-radius: 15px;
-  -o-border-radius: 15px;
-  border-radius: 15px;
+  padding: 5% 15%;
   background: -webkit-gradient(linear, left top, left bottom, color-stop(0, rgba(0,0,0,0.30)), color-stop(1, rgba(0,0,0,0.50)));
   background: -webkit-linear-gradient(top, rgba(0,0,0,0.30) 0%, rgba(0,0,0,0.50) 100%);
   background: -moz-linear-gradient(top, rgba(0,0,0,0.30) 0%, rgba(0,0,0,0.50) 100%);
