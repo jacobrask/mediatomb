@@ -137,17 +137,22 @@
   views['login'] = function() {
     return form('#login', function() {
       return fieldset(function() {
-        legend('Log in');
         label(function() {
-          text('Username');
+          if (!Modernizr.input.placeholder) {
+            text('Username');
+          }
           return input('#username', {
-            type: 'text'
+            type: 'text',
+            placeholder: 'Username'
           });
         });
         label(function() {
-          text('Password');
+          if (!Modernizr.input.placeholder) {
+            text('Password');
+          }
           return input('#password', {
-            type: 'password'
+            type: 'password',
+            placeholder: 'Password'
           });
         });
         return button('Login');

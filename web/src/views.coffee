@@ -7,13 +7,12 @@ views['main'] = ->
 views['login'] = ->
     form '#login', ->
         fieldset ->
-            legend 'Log in'
             label ->
-                text 'Username'
-                input '#username', type: 'text'
+                text 'Username' unless Modernizr.input.placeholder
+                input '#username', type: 'text', placeholder: 'Username'
             label ->
-                text 'Password'
-                input '#password', type: 'password'
+                text 'Password' unless Modernizr.input.placeholder
+                input '#password', type: 'password', placeholder: 'Password'
             button 'Login'
 
 views['error'] = ->
