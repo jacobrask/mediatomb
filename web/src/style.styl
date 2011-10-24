@@ -1,10 +1,18 @@
 @import 'nib'
-vendor-prefixes = webkit moz ms o official
+support-for-ie = false
+vendor-prefixes = webkit moz o official
 global-reset()
+
+input-placeholder()
+      for prefix in vendor-prefixes
+        unless official == prefix
+            &::-{prefix}-input-placeholder
+                opacity: .5
+                color: #000
 
 body
     background: url(/img/concrete_wall.png)
-    color: #eee
+    color: #ddd
     font: 14px sans-serif
     width: 640px
     margin: 0 auto
@@ -39,6 +47,7 @@ h1
             display: block
             width: 100%
             margin: 15px 0 0
+            font: bold 16px sans-serif
             input
                 width: 100%
                 box-sizing: border-box
@@ -46,4 +55,6 @@ h1
                 display: block
                 border: 1px solid rgba(0, 0, 0, .4)
                 border-radius: 3px
+                background: rgba(255, 255, 255, .75)
                 box-shadow: inset 4px 4px 6px rgba(0, 0, 0, .3)
+                input-placeholder()
